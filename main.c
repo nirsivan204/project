@@ -11,9 +11,9 @@
 #include <time.h>
 
 int main(int argc, char *argv[]){
-	BOARD game_board;
-	BOARD fix_board;
-	BOARD solved_board;
+	BOARD *game_board;
+	BOARD *fix_board;
+	BOARD *solved_board;
 	int fix;
 	int is_game_over = 0;
 	int command[4];
