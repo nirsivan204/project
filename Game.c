@@ -8,7 +8,7 @@
  * @param x - the required cells's row.
  *
  */
-void hint(BOARD solved_board, int x, int y) {
+void hint(BOARD *solved_board, int x, int y) {
 	printf("Hint: set cell to %d\n", get_element_from_board(solved_board, x, y));
 }
 
@@ -20,7 +20,7 @@ void hint(BOARD solved_board, int x, int y) {
  * @param solved_board - the current solution for the puzzle.
  *
  */
-void validate(BOARD board, BOARD solved_board) {
+void validate(BOARD *board, BOARD *solved_board) {
 	int is_solvable;
 	BOARD temp_board;
 	copy_board(board,temp_board);
@@ -60,11 +60,11 @@ void restart_game() {
  * 1 - if every cell of 'board' is full.
  * 0 - otherwise.
  */
-int puzzle_solved(BOARD board) {
+int puzzle_solved(BOARD *board) {
 	int i;
 	int j;
-	for (i=0;i<M*N;i++){
-		for (j=0;j<M*N;j++) {
+	for (i=0;i<board->M*board->N;i++){
+		for (j=0;j<board->M*board->N;j++) {
 			if (get_element_from_board(board, i, j) == 0) {
 				return 0;
 			}
@@ -83,7 +83,7 @@ int puzzle_solved(BOARD board) {
  * @param y - the required cells's row.
  * @param z - the required cells's new given value.
  */
-void insert(BOARD board,BOARD fix_board, int x, int y, int z) {
+void insert(BOARD *board,BOARD *fix_board, int x, int y, int z) {
 	set_element_to_board(board,x,y,z);
 	print_board(board, fix_board);
 }
@@ -104,7 +104,7 @@ void insert(BOARD board,BOARD fix_board, int x, int y, int z) {
  * 1 - if the current puzzle has been completed (by filling the last empty cell).
  * 0 - otherwise.
  */
-int set(BOARD board,BOARD fix_board, int x, int y, int z){
+int set(BOARD *board,BOARD *fix_board, int x, int y, int z){
 	int fix_val = get_element_from_board(fix_board,x,y);
 	if(fix_val!=0){
 		printf("Error: cell is fixed\n");
@@ -135,7 +135,7 @@ int set(BOARD board,BOARD fix_board, int x, int y, int z){
  * 1 - if the function 'set' is called and returns 1 (if the current puzzle has been completed by filling the last empty cell).
  * 0 - otherwise.
  */
-int execute_command(int *command, BOARD board, BOARD fix_board, BOARD solved_board) {
+int execute_command(int *command, BOARD *board, BOARD *fix_board, BOARD *solved_board) {
 	switch (command[0]) {
 	case SET:
 		return set(board, fix_board, --command[1], --command[2], command[3]);

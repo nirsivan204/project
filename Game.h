@@ -7,4 +7,4 @@ enum Command {SET = 1, HINT = 2, VALIDATE = 3, RESTART = 4, EXIT = 5};
 /*
  *  execute_command - performs a move on the current puzzle, according to a specific given command.
  */
-int execute_command(int *command, BOARD board, BOARD fix_board, BOARD solved_board);
+int execute_command(int *command, BOARD *board, BOARD *fix_board, BOARD *solved_board);
