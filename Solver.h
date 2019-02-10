@@ -6,7 +6,7 @@
  *
  */
 
-//#include "BoardHandle.h"
+#include "BoardHandle.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -25,7 +25,7 @@
  *
  *
  */
-void initialize_puzzle (int fix_num,BOARD game_board ,BOARD fix_board, BOARD solved_board);
+void initialize_puzzle (int fix_num,BOARD *game_board ,BOARD *fix_board, BOARD *solved_board);
 /*
  *
  * This function is building a board (by solving it).
@@ -38,4 +38,4 @@ void initialize_puzzle (int fix_num,BOARD game_board ,BOARD fix_board, BOARD sol
  * @return 1 if build/validation was successful, 0 if not.
  *
  */
-int build_board(BOARD board, int is_determin);
+int build_board(BOARD *board, int is_determin);

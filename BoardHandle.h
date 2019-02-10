@@ -24,6 +24,15 @@ typedef struct bo{ /*BOARD is a M X N matrix of BLOCKs*/
 	BLOCK** blocks;
 }BOARD;
 
+
+BLOCK* init_block(int N, int M);
+
+BOARD* init_board(int N, int M);
+
+void delete_block(BLOCK* block);
+
+void delete_board(BOARD* board);
+
 /*
  * this function return a value of a cell in the board
  * @param board - the board.

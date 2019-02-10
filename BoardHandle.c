@@ -1,5 +1,49 @@
 #include "BoardHandle.h"
 
+BLOCK* init_block(int N, int M) {
+	BLOCK* result;
+	int i = 0;
+	result = (BLOCK*)malloc(sizeof(BLOCK));
+	result->M = M;
+	result->N = N;
+	result->values = (int**)malloc(sizeof(int*)*N);
+	for(;i<N;i++) {
+		result->values[i] = (int*)calloc(M, sizeof(int));
+	}
+	return result;
+}
+
+BOARD* init_board(int N, int M) {
+	BOARD* result;
+	int i = 0;
+	result = (BOARD*)malloc(sizeof(BOARD));
+	result->M = M;
+	result->N = N;
+	result->blocks = (BLOCK**)malloc(sizeof(BLOCK*)*M);
+	for(;i<M;i++) {
+		result->blocks[i] = (BLOCK*)calloc(N, sizeof(BLOCK));
+	}
+	return result;
+}
+
+void delete_block(BLOCK* block) {
+	int i = 0;
+	for(;i<block->N;i++) {
+		free(block->values[i]);
+	}
+	free(block->values);
+	free(block);
+}
+
+void delete_board(BOARD* board) {
+	int i = 0;
+	for(;i<board->M;i++) {
+		free(board->blocks[i]);
+	}
+	free(board->blocks);
+	free(board);
+}
+
 /*
  * return a value of a cell in a block
  * @param block - the block of interest.

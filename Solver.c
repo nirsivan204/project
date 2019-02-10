@@ -67,10 +67,10 @@ void delete_digit(int *legal_digits,int index, int length){
  * @return the number of possible digits
  */
 
-int find_legal_digits(int *legal_digits,BOARD game_board,int x,int y){ /*finding all legel digits, and put them in the legel digits array. returning the num of possible digits*/
+int find_legal_digits(int *legal_digits,BOARD *game_board,int x,int y){ /*finding all legel digits, and put them in the legel digits array. returning the num of possible digits*/
 	int digit;
 	int num_of_legal_digits = 0;
-	for (digit = 1;digit<=N*M;digit++){
+	for (digit = 1;digit<=game_board->N*game_board->M;digit++){
 		if(is_valid_insertion(game_board,x,y,digit)==1){
 			legal_digits[num_of_legal_digits] = digit;
 			num_of_legal_digits++;
@@ -91,7 +91,7 @@ int find_legal_digits(int *legal_digits,BOARD game_board,int x,int y){ /*finding
  * 		   0 otherwise
  */
 
-int compute_next_cordinates(int x, int y , int *next_x , int *next_y){
+int compute_next_cordinates(int x, int y , int *next_x , int *next_y, int N, int M){
 	if(x==N*M-1){
 		*next_x = 0;
 		if(y == N*M-1){
@@ -144,11 +144,11 @@ int get_valid_digit(int *legal_digits ,int num_of_legal_digits, int is_determin)
  * 		   0 otherwise
  */
 
-int build_board_helper(BOARD solved_board,int x, int y, int is_determin){
+int build_board_helper(BOARD *solved_board,int x, int y, int is_determin){
 	int next_x,next_y,digit,num_of_legal_digits, end_of_board = 0,valid = 0;
-	int legal_digits[N*M];
+	int legal_digits[solved_board->N*solved_board->M];
 	num_of_legal_digits = find_legal_digits(legal_digits,solved_board, x, y); /*find all legel digits for <x,y>*/
-	end_of_board = compute_next_cordinates(x,y,&next_x,&next_y);/*find if it is the end of the board*/
+	end_of_board = compute_next_cordinates(x,y,&next_x,&next_y, solved_board->N, solved_board->M);/*find if it is the end of the board*/
 	if(get_element_from_board(solved_board,x,y)!=0){  /*if this place has a value already, it means we are in deterministicly validation mode */
 		if(end_of_board == 0 ){ /*if it is not the end of the board, continue with the next coordinates*/
 			return build_board_helper(solved_board,next_x,next_y,is_determin);
@@ -186,13 +186,13 @@ int build_board_helper(BOARD solved_board,int x, int y, int is_determin){
  * @param solved_board - the board that holds the solution.
  *
  */
-void make_fix_board(int fix_num, BOARD fix_board, BOARD solved_board){/**/
+void make_fix_board(int fix_num, BOARD *fix_board, BOARD *solved_board){/**/
 	int counter = 0;
 	int x;
 	int y;
 	while(counter<fix_num){
-		x = get_rand_number(N*M);
-		y = get_rand_number(N*M);
+		x = get_rand_number(fix_board->N*fix_board->M);
+		y = get_rand_number(fix_board->N*fix_board->M);
 		if(get_element_from_board(fix_board,x,y)==0){
 			set_element_to_board(fix_board,x,y,get_element_from_board(solved_board,x,y));
 			counter++;
@@ -207,7 +207,7 @@ void make_fix_board(int fix_num, BOARD fix_board, BOARD solved_board){/**/
  *
  */
 
-int build_board(BOARD board, int is_determin){
+int build_board(BOARD *board, int is_determin){
 	return build_board_helper(board,0,0,is_determin);
 }
 
@@ -219,7 +219,7 @@ int build_board(BOARD board, int is_determin){
  *
  */
 
-void zero_boards(BOARD board1, BOARD board2, BOARD board3){
+void zero_boards(BOARD *board1, BOARD *board2, BOARD *board3){
 	zero_board(board1);
 	zero_board(board2);
 	zero_board(board3);
@@ -229,7 +229,7 @@ void zero_boards(BOARD board1, BOARD board2, BOARD board3){
  * this function defined in the .h file.
  */
 
-void initialize_puzzle (int fix_num, BOARD game_board ,BOARD fix_board, BOARD solved_board){ /*initializing 3 boards: solved, fixed, and game. */
+void initialize_puzzle (int fix_num, BOARD *game_board ,BOARD *fix_board, BOARD *solved_board){ /*initializing 3 boards: solved, fixed, and game. */
 	zero_boards(game_board, fix_board, solved_board); /*zero all boards*/
 	build_board(solved_board,0);/*find a random board*/
 	make_fix_board(fix_num,fix_board,solved_board);/* fix "fix_num" of places in fix_board*/

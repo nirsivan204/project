@@ -22,7 +22,7 @@ void hint(BOARD *solved_board, int x, int y) {
  */
 void validate(BOARD *board, BOARD *solved_board) {
 	int is_solvable;
-	BOARD temp_board;
+	BOARD *temp_board;
 	copy_board(board,temp_board);
 	is_solvable = build_board(temp_board,1);
 	if(is_solvable == 1){
