@@ -12,16 +12,20 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifndef BOARDHANDLER_H_
+#define BOARDHANDLER_H_
+
 //#define N 3 /*num of rows in a block*/
 //#define M 3 /*num of cols in a block*/
 #define SEPARATOR_ROW "----------------------------------\n"  /*the separator row for printing*/
-typedef struct bl {/*BLOCK is a N X M matrix of ints*/
+typedef struct bl {/*BLOCK is a M X N matrix of ints*/
 	int N, M, **values;
 }BLOCK;
 
-typedef struct bo{ /*BOARD is a M X N matrix of BLOCKs*/
+typedef struct bo{ /*BOARD is a N X M matrix of BLOCKs*/
 	int N, M;
-	BLOCK** blocks;
+	BLOCK*** blocks;
 }BOARD;
 
 
@@ -85,3 +89,7 @@ void print_board(BOARD *board, BOARD *fixed_board);
  *
  */
 void copy_board(BOARD *in_board, BOARD *out_board);
+
+void print_block(BLOCK *block);
+void set_element_to_block(BLOCK *block, int x, int y, int z);
+#endif /* BOARDHANDLER_H_ */
