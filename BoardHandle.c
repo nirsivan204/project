@@ -195,16 +195,20 @@ void print_block_row(BLOCK *block,BLOCK *fixed_block,int row){ /*printing the ro
 	int i;
 	for (i=0;i<block->N;i++){/*for every col*/
 		printf(" ");
-		if(fixed_block->values[row][i]!=0){ /*if fixed, print "." else print " "*/
-			printf(".");
-		}else{
-			printf(" ");
-		}
 		if(block->values[row][i]==0){ /*if empty, print " " else print the number*/
 			printf(" ");
 		}
 		else{
 			printf("%d",block->values[row][i]);
+		}
+		if(fixed_block->values[row][i]==1){ /*if fixed, print "."*/
+			printf(".");
+		}
+		if(fixed_block->values[row][i]==2){ /*if erroneous, print "*" */
+			printf("*");
+		}
+		if(fixed_block->values[row][i]==0){ /*else print " "*/
+			printf(" ");
 		}
 	}
 }

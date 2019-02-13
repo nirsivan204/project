@@ -8,10 +8,47 @@
 #include "assert.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+
+int is_white_space(char c){
+	return c=='\n'|| c==' ' || (int)c==9 || (int)c==13;
+}
+
+char ignore_white_spaces(FILE *file){
+	char res = fgetc(file);
+	while(is_white_space(res)){
+		res = fgetc(file);
+		continue;
+	}
+	return res;
+}
+
+void read_next_element(FILE *file,int *z,int *is_fixed){
+	char c = ignore_white_spaces(file);
+	*is_fixed = 0;
+	*z = 0;
+	if(!isdigit(c)){
+		printf("error in file format");
+	}
+	while(isdigit(c)){
+		*z = *z*10+(int)c-48;
+		c = fgetc(file);
+	}
+	if(c == '.'){
+		*is_fixed = 1;
+	}else{
+		if(!is_white_space(c)){
+			printf("error in file format");
+		}
+	}
+}
+
+
+
 
 void load_board(char *path,BOARD *board, BOARD *fix_board){
 	FILE *file;
-	int N,M,x = 0 ,y = 0,z;
+	int N,M,x = 0 ,y = 0,z,is_fixed;
 	file = fopen(path, "r");
 	if(file == NULL){
 		printf("error opening file");
@@ -22,18 +59,42 @@ void load_board(char *path,BOARD *board, BOARD *fix_board){
 		assert(0);
 	}
 	printf("%d %d\n",N,M);
-	BOARD *res = NULL;
-	res = init_board(N,M);
-	print_board(res,res);
+	*board = *init_board(N,M);
+	*fix_board = *init_board(N,M);
+	print_board(board,fix_board);
 	(fgetc(file));
 	for(;y<M*N;y++){
 		for(x=0;x<N*M;x++){
-			fscanf(file,"%d ",&z);
-			set_element_to_board(res,x,y,z);
+			read_next_element(file,&z,&is_fixed);
+			set_element_to_board(board,x,y,z);
+			set_element_to_board(fix_board,x,y,is_fixed);
 		}
 		fscanf(file,"\n");
 	}
-	print_board(res,res);
-	delete_board(res);
+	//print_board(board,fix_board);
+}
+
+void save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
+	FILE *file;
+	int i = 0,j = 0;
+	file = fopen(path, "w");
+	if(file == NULL){
+		printf("error writing in file");
+		assert(0);
+	}
+	fprintf(file,"%d %d\n",board->M,board->N);
+	for (;i<board->M*board->N;i++){
+		for (j=0;j<board->M*board->N;j++){
+			fprintf(file,"%d",get_element_from_board(board,j,i));
+			if(mode == 0 || get_element_from_board(fix_board,j,i)==1){
+				fprintf(file,".");
+			}else{
+				if(j!=board->M*board->N-1){
+					fprintf(file," ");
+				}
+			}
+		}
+		fprintf(file,"\n");
+	}
 }
 

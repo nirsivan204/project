@@ -69,8 +69,10 @@
 //
 //
 int main(){
-	BOARD *a = NULL,*b = NULL;
-	load_board("C:/Users/nir/workspace/project/boards/test.txt",a,b);
+	BOARD a,b;
+	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
+	print_board(&a,&b);
+	save_board("C:/Users/nir/workspace/project/boards/test1.txt",&a,&b,0);
 	return 0;
 }
 
