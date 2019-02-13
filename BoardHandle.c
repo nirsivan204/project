@@ -46,6 +46,7 @@ void delete_board(BOARD* board) {
 		for(j=0;j<board->M;j++){
 			delete_block(board->blocks[i][j]);
 		}
+		free(board->blocks[i]);
 	}
 	free(board->blocks);
 	free(board);
@@ -239,8 +240,8 @@ void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the
 void copy_Block(BLOCK *in_block ,BLOCK *out_block){ /*copy in_block to out_block*/
 	int i=0;
 	int j=0;
-	for (i=0;i<in_block->N;i++){/*for each row of block*/
-		for(j=0;j<in_block->M;j++){/*for each column of block*/
+	for (i=0;i<in_block->M;i++){/*for each row of block*/
+		for(j=0;j<in_block->N;j++){/*for each column of block*/
 			out_block->values[i][j]=in_block->values[i][j];/*copy element*/
 		}
 	}
@@ -253,8 +254,8 @@ void copy_Block(BLOCK *in_block ,BLOCK *out_block){ /*copy in_block to out_block
 void copy_board(BOARD *in_board, BOARD *out_board){/*copy in_board to out_board*/
 	int i=0;
 	int j=0;
-	for (i=0;i<in_board->M;i++){/*for each row of blocks in board*/
-		for(j=0;j<in_board->N;j++){/*for each column of blocks in board*/
+	for (i=0;i<in_board->N;i++){/*for each row of blocks in board*/
+		for(j=0;j<in_board->M;j++){/*for each column of blocks in board*/
 			copy_Block(in_board->blocks[i][j],out_board->blocks[i][j]);/*copy block*/
 		}
 	}
