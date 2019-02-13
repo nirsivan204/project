@@ -1,15 +1,16 @@
 ///*
 // * tester.c
 // *
-// *  Created on: 12 áãöî 2018
+// *  Created on: 12 ×‘×“×¦×ž 2018
 // *      Author: nir
 // */
 ////#include "MainAux.h"
-//#include "Solver.h"
-//#include <time.h>
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include "SPBufferset.h"
+#include "Solver.h"
+#include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "SPBufferset.h"
+#include "BoardFileHandler.h"
 //int this_is_global;
 //
 //
@@ -67,3 +68,9 @@
 //
 //
 //
+int main(){
+	BOARD *a = NULL,*b = NULL;
+	load_board("C:/Users/nir/workspace/project/boards/test.txt",a,b);
+	return 0;
+}
+
