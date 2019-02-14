@@ -18,7 +18,6 @@
 
 //#define N 3 /*num of rows in a block*/
 //#define M 3 /*num of cols in a block*/
-#define SEPARATOR_ROW "----------------------------------\n"  /*the separator row for printing*/
 typedef struct bl {/*BLOCK is a M X N matrix of ints*/
 	int N, M, **values;
 }BLOCK;
@@ -26,6 +25,7 @@ typedef struct bl {/*BLOCK is a M X N matrix of ints*/
 typedef struct bo{ /*BOARD is a N X M matrix of BLOCKs*/
 	int N, M;
 	BLOCK*** blocks;
+	char line_seperator[1024];/*the separator row for printing*/
 }BOARD;
 
 
