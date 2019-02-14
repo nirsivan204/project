@@ -6,7 +6,7 @@
  */
 #include "command_stack.h"
 
-list *init(){
+list *init_list(){
 	list *res = (list*) malloc(sizeof(list));
 	res->first = NULL;
 	res->current_command = NULL;
@@ -36,16 +36,27 @@ void delete_list(list* s){
 	free(s);
 }
 
-void add_command(list *s,int command,float *args,char *path){
+void add_command(list *s,int command,int *args,char *path ,float threshold){
 	node *current_command = s->current_command;
 	node *element = (node*)malloc(sizeof(node));
 	element->command = command;
-	element->path = (char*)malloc(sizeof(char)*(strlen(path)+1));
-	strcpy(element->path,path);
-	memcpy(element->args,args,3*sizeof(float));
+	if(path!=NULL){
+		element->path = (char*)malloc(sizeof(char)*(strlen(path)+1));
+		strcpy(element->path,path);
+	}else{
+		element->path = NULL;
+	}if(args!=NULL){
+		memcpy(element->args,args,3*sizeof(int));
+	}
+	element->threshold = threshold;
 	element->prev = current_command;
-	delete_next_nodes(current_command);
-	current_command->next = element;
+	if(current_command!=NULL){
+		delete_next_nodes(current_command);
+		current_command->next = element;
+	}else{
+		s->first = element;
+	}
+	s->current_command = element;
 	element->next = NULL;
 	s->num_of_commands++;
 }
@@ -55,4 +66,40 @@ node *pop_command(list *s){
 	s->current_command = res->prev;
 	s->num_of_commands--;
 	return res;
+}
+
+node* forword_current_command(list *s){
+	if(s == NULL){
+		printf("list wasn't initialized");
+		assert(0);
+	}
+	if(s->current_command == NULL){
+		printf("list is empty");
+		return NULL;
+	}
+	if(s->current_command->next == NULL){
+		return NULL;
+	}
+	s->current_command = s->current_command->next;
+	return s->current_command;
+}
+
+void print_node(node *node){
+	printf("command:%d\n",node->command);
+	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
+	if(node->path ==NULL){
+		printf("path is NULL\n");
+	}else{
+		printf("%s\n",node->path);
+	}
+	printf("threshold is %f\n",node->threshold);
+	printf("|\n|\n\\/\n");
+
+}
+void print_list(list *list){
+	node *node = list->first;
+	while (node!=NULL){
+		print_node(node);
+		node=node->next;
+	}
 }
