@@ -27,6 +27,11 @@ BOARD* init_board(int N, int M) {
 			result->blocks[i][j] = init_block(N,M);
 		}
 	}
+	for(i=0; i<4*N*M+2*N+1;i++){
+		result->line_seperator[i] = '-';
+	}
+	result->line_seperator[i] = '\n';
+	result->line_seperator[i+1]='\0';
 	return result;
 }
 
@@ -222,7 +227,7 @@ void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the
 	int block_col = 0 ;
 	int row = 0;
 	for (block_row = 0;block_row<board->N;block_row++){/*for each row of blocks in board*/
-		printf(SEPARATOR_ROW);
+		printf("%s",board->line_seperator);
 		for(row = 0;row<board->M;row++){/*for each row in a block*/
 			printf("|");
 			for (block_col = 0;block_col<board->M;block_col++){/*for each block in the row*/
@@ -232,7 +237,7 @@ void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the
 			printf("\n");
 		}
 	}
-	printf(SEPARATOR_ROW);
+	printf("%s",board->line_seperator);
 
 }
 

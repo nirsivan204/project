@@ -6,11 +6,14 @@
 // */
 ////#include "MainAux.h"
 #include "Solver.h"
+#include "Game.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "SPBufferset.h"
 #include "BoardFileHandler.h"
+int current_mode = INIT;
+
 //int this_is_global;
 //
 //
