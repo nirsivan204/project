@@ -12,6 +12,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include "strings.h"
 
 #ifndef BOARDHANDLER_H_
 #define BOARDHANDLER_H_
@@ -88,7 +89,7 @@ void print_board(BOARD *board, BOARD *fixed_board);
  * @param out_board - the board that will be a copy of in_board after the function call
  *
  */
-void copy_board(BOARD *in_board, BOARD *out_board);
+BOARD *copy_board(BOARD *in_board);
 
 void print_block(BLOCK *block);
 void set_element_to_block(BLOCK *block, int x, int y, int z);

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include "BoardHandle.h"
 
 #ifndef COMMAND_STACK_H_
 #define COMMAND_STACK_H_
@@ -16,6 +17,7 @@ typedef struct node{
 	int args[3];
 	char *path;
 	float threshold;
+	BOARD *board_after_command;
 	struct node *next;
 	struct node *prev;
 }node;
@@ -28,8 +30,8 @@ typedef struct list{
 
 list *init_list();
 void delete_list(list* s);
-void add_command(list *s,int command,int *args,char *path, float threshold);
+void add_command(list *s,int command,int *args,char *path, float threshold, BOARD *board_after_command);
 node* pop_command(list *s);
-void print_list(list *s);
+void print_list(list *s,int with_board);
 node* forward_current_command(list *s);
 #endif /* COMMAND_STACK_H_ */

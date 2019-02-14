@@ -246,28 +246,45 @@ void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the
  * @param out_block - the block that will be a copy of in_board after the function call
  *
  */
-void copy_Block(BLOCK *in_block ,BLOCK *out_block){ /*copy in_block to out_block*/
+BLOCK *copy_Block(BLOCK *in_block){ /*return a copy of in_block*/
+	BLOCK *res;
+	res = (BLOCK*)malloc(sizeof(BLOCK));
+	res->M = in_block->M;
+	res->N = in_block->N;
+	res->values = (int**)malloc(res->M*sizeof(int*));
 	int i=0;
 	int j=0;
 	for (i=0;i<in_block->M;i++){/*for each row of block*/
+		res->values[i] = (int*)malloc(res->N*sizeof(int));
 		for(j=0;j<in_block->N;j++){/*for each column of block*/
-			out_block->values[i][j]=in_block->values[i][j];/*copy element*/
+			res->values[i][j]=in_block->values[i][j];/*copy element*/
 		}
 	}
+	return res;
 }
 
 /*
  * this function defined in the .h file.
  */
 
-void copy_board(BOARD *in_board, BOARD *out_board){/*copy in_board to out_board*/
+BOARD *copy_board(BOARD *in_board){/*return a copy of in_board*/
+	if(in_board == NULL){
+		return NULL;
+	}
+	BOARD *res = (BOARD*)malloc(sizeof(BOARD));
+	res->M = in_board->M;
+	res->N = in_board->N;
+	strcpy(res->line_seperator,in_board->line_seperator);
+	res->blocks = (BLOCK***)malloc(res->N*sizeof(BLOCK**));
 	int i=0;
 	int j=0;
 	for (i=0;i<in_board->N;i++){/*for each row of blocks in board*/
+		res->blocks[i] = (BLOCK**)malloc(res->M*sizeof(BLOCK*));
 		for(j=0;j<in_board->M;j++){/*for each column of blocks in board*/
-			copy_Block(in_board->blocks[i][j],out_board->blocks[i][j]);/*copy block*/
+			res->blocks[i][j] = copy_Block(in_board->blocks[i][j]);/*copy block*/
 		}
 	}
+	return res;
 }
 
 

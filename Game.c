@@ -23,10 +23,10 @@ void hint(BOARD *solved_board, int x, int y) {
 void validate(BOARD *board, BOARD *solved_board) {
 	int is_solvable;
 	BOARD *temp_board = NULL;
-	copy_board(board,temp_board);
+	temp_board = copy_board(board);
 	is_solvable = build_board(temp_board,1);
 	if(is_solvable == 1){
-		copy_board(temp_board,solved_board);
+		solved_board = copy_board(temp_board);
 		printf("Validation passed: board is solvable\n");
 	}
 	else{
