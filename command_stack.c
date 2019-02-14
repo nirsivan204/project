@@ -18,7 +18,7 @@ void delete_nodes_recursivley(node *node){
 	if(node != NULL){
 		free(node->path);
 		delete_nodes_recursivley(node->next);
-		free(node->next);
+		//free(node->next);
 		free(node);
 	}
 }
@@ -68,7 +68,7 @@ node *pop_command(list *s){
 	return res;
 }
 
-node* forword_current_command(list *s){
+node* forward_current_command(list *s){
 	if(s == NULL){
 		printf("list wasn't initialized");
 		assert(0);
@@ -102,4 +102,5 @@ void print_list(list *list){
 		print_node(node);
 		node=node->next;
 	}
+	printf("-------------\n");
 }

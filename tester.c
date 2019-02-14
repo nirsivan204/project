@@ -84,7 +84,13 @@ int main(){
 	add_command(s,2,args,NULL,0);
 	add_command(s,5,NULL,NULL,9.6);
 	print_list(s);
-
+	pop_command(s);
+	pop_command(s);
+	print_list(s);
+	forward_current_command(s);
+	forward_current_command(s);
+	add_command(s,3,args,"amram",0);
+	print_list(s);
 	return 0;
 }
 
