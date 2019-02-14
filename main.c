@@ -9,8 +9,12 @@
 //#include "Game.h"
 #include "Parser.h"
 #include <time.h>
-//
-//int main(int argc, char *argv[]){
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(int argc, char *argv[]){
 //	BOARD *game_board;
 //	BOARD *fix_board;
 //	BOARD *solved_board;
@@ -31,5 +35,22 @@
 //			is_game_over = execute_command(command, game_board, fix_board, solved_board);/*execute command*/
 //		}while(command[0] < 4);/*set, hint or validate*/
 //	}while(command[0] == RESTART);
-//	return 0;
-//}
+
+	char* command_line;
+	command_line = (char*)malloc(sizeof(char));
+	if(fgets(command_line, 2+MAX_COMMAND_LENGTH , stdin) == NULL){
+		printf("null");
+		free(command_line);
+		return 0;
+	}
+//	float f;
+//	scanf("%d",&f);
+	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
+		printf("error: length = %d", (int)strlen(command_line));
+		free(command_line);
+		return 0;
+	}
+	printf("%s, %d", command_line, (int)strlen(command_line));
+	free(command_line);
+	return 0;
+}

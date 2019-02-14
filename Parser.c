@@ -126,14 +126,14 @@ int check_if_blank(char *line){
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
 void read_command(int *command, int is_game_over) {
-	char command_input[MAX_COMMAND_LENGTH];
+	char command_line[MAX_COMMAND_LENGTH];
 	do{
-		if(fgets(command_input, MAX_COMMAND_LENGTH, stdin) == NULL){
+		if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
 			command[0]=5;
 			return;
 		}
-	}while(check_if_blank(command_input)==1);
-	if (is_valid_command(command_input, command, is_game_over) == 0) {
+	}while(check_if_blank(command_line)==1);
+	if (is_valid_command(command_line, command, is_game_over) == 0) {
 		printf("Error: invalid command\n");
 		read_command(command, is_game_over);
 	}
