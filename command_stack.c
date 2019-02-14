@@ -17,6 +17,7 @@ list *init_list(){
 void delete_nodes_recursivley(node *node){
 	if(node != NULL){
 		free(node->path);
+		delete_board(node->board_after_command);
 		delete_nodes_recursivley(node->next);
 		//free(node->next);
 		free(node);
@@ -36,7 +37,7 @@ void delete_list(list* s){
 	free(s);
 }
 
-void add_command(list *s,int command,int *args,char *path ,float threshold){
+void add_command(list *s,int command,int *args,char *path ,float threshold, BOARD *board_after_command){
 	node *current_command = s->current_command;
 	node *element = (node*)malloc(sizeof(node));
 	element->command = command;
@@ -50,6 +51,7 @@ void add_command(list *s,int command,int *args,char *path ,float threshold){
 	}
 	element->threshold = threshold;
 	element->prev = current_command;
+	element->board_after_command = copy_board(board_after_command);
 	if(current_command!=NULL){
 		delete_next_nodes(current_command);
 		current_command->next = element;
@@ -84,7 +86,7 @@ node* forward_current_command(list *s){
 	return s->current_command;
 }
 
-void print_node(node *node){
+void print_node(node *node,int with_board){
 	printf("command:%d\n",node->command);
 	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
 	if(node->path ==NULL){
@@ -93,13 +95,20 @@ void print_node(node *node){
 		printf("%s\n",node->path);
 	}
 	printf("threshold is %f\n",node->threshold);
+	if(with_board==1){
+		if(node->board_after_command == NULL){
+			printf("board is NULL\n");
+		}else{
+			print_board(node->board_after_command,node->board_after_command);
+		}
+	}
 	printf("|\n|\n\\/\n");
 
 }
-void print_list(list *list){
+void print_list(list *list, int with_board){
 	node *node = list->first;
 	while (node!=NULL){
-		print_node(node);
+		print_node(node,with_board);
 		node=node->next;
 	}
 	printf("-------------\n");

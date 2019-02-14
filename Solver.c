@@ -233,7 +233,7 @@ void initialize_puzzle (int fix_num, BOARD *game_board ,BOARD *fix_board, BOARD 
 	zero_boards(game_board, fix_board, solved_board); /*zero all boards*/
 	build_board(solved_board,0);/*find a random board*/
 	make_fix_board(fix_num,fix_board,solved_board);/* fix "fix_num" of places in fix_board*/
-	copy_board(fix_board,game_board); /* copy fix_board to game_board*/
+	game_board = copy_board(fix_board); /* copy fix_board to game_board*/
 	print_board(game_board,fix_board);
 }
 
