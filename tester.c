@@ -7,6 +7,7 @@
 ////#include "MainAux.h"
 #include "Solver.h"
 #include "Game.h"
+#include "command_stack.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,9 +74,17 @@ int current_mode = INIT;
 //
 int main(){
 	BOARD a,b;
+	list *s;
 	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
 	print_board(&a,&b);
 	save_board("C:/Users/nir/workspace/project/boards/test1.txt",&a,&b,0);
+	s = init_list();
+	int args[]= {1,2,3};
+	add_command(s,1,args,"nir",0);
+	add_command(s,2,args,NULL,0);
+	add_command(s,5,NULL,NULL,9.6);
+	print_list(s);
+
 	return 0;
 }
 
