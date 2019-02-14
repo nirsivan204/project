@@ -36,21 +36,9 @@ int main(int argc, char *argv[]){
 //		}while(command[0] < 4);/*set, hint or validate*/
 //	}while(command[0] == RESTART);
 
-	char* command_line;
-	command_line = (char*)malloc(sizeof(char));
-	if(fgets(command_line, 2+MAX_COMMAND_LENGTH , stdin) == NULL){
-		printf("null");
-		free(command_line);
-		return 0;
-	}
+
 //	float f;
 //	scanf("%d",&f);
-	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
-		printf("error: length = %d", (int)strlen(command_line));
-		free(command_line);
-		return 0;
-	}
-	printf("%s, %d", command_line, (int)strlen(command_line));
-	free(command_line);
+
 	return 0;
 }

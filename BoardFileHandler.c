@@ -5,16 +5,13 @@
  *      Author: nir
  */
 #include "BoardFileHandler.h"
+#include "ReadingAux.h"
 #include "assert.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 
-int is_white_space(char c){
-	return c=='\n'|| c==' ' || (int)c==9 || (int)c==13;
-}
-
-char ignore_white_spaces(FILE *file){
+char ignore_white_spaces_in_file(FILE *file){
 	char res = fgetc(file);
 	while(is_white_space(res)){
 		res = fgetc(file);
@@ -24,7 +21,7 @@ char ignore_white_spaces(FILE *file){
 }
 
 void read_next_element(FILE *file,int *z,int *is_fixed){
-	char c = ignore_white_spaces(file);
+	char c = ignore_white_spaces_in_file(file);
 	*is_fixed = 0;
 	*z = 0;
 	if(!isdigit(c)){

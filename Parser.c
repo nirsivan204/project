@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Parser.h"
+#include "ReadingAux.h"
 
 /**
  * gets the number of arguments that required by 'command'.
@@ -51,10 +52,10 @@ int is_legal_number(int number, int minValue, int maxValue) {
  * 1 - if the input string can represent a valid command as described above.
  * 0 - otherwise
  */
-int search_command(char *string, int is_game_over) {
+int search_command(char *string, int mode) {
 	int index;
 	char *commands[] = {"set", "hint", "validate", "restart", "exit"};
-	index = (is_game_over == 1) ? 3 : 0;
+	index = (mode == 1) ? 3 : 0;
 	for (; index < 5; index++)
 		if (strcmp(string, commands[index]) == 0)
 			return ++index;
@@ -76,11 +77,15 @@ int search_command(char *string, int is_game_over) {
  * 1 - if the input line can represent a valid command as described above.
  * 0 - otherwise
  */
-int is_valid_command(char command_input[], int *command, int is_game_over) {
+int is_valid_command(char* command_line, int mode) {
+	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
+		printf("Error: invalid command\n");
+	}
 	char *string = "";
 	int index = 0;
-	string = strtok(command_input, " \t\r\n");
-	command[index] = search_command(string, is_game_over);
+	string = strtok(command_line, " \t\r\n");
+	/*
+	command[index] = search_command(string, mode);
 
 	if (command[index] == 0) {
 		return 0;
@@ -93,6 +98,7 @@ int is_valid_command(char command_input[], int *command, int is_game_over) {
 		}
 		command[index] = atoi(string);
 	}
+	*/
 	return 1;
 }
 
@@ -108,7 +114,7 @@ int is_valid_command(char command_input[], int *command, int is_game_over) {
 int check_if_blank(char *line){
 	unsigned int i;
 	for(i=0;i<strlen(line);i++){
-		if(line[i]!='\n'&& line[i]!=' ' && (int)line[i]!=9 && (int)line[i]!=13){
+		if(!is_white_space(line[i])){
 			return 0;
 		}
 	}
@@ -125,17 +131,22 @@ int check_if_blank(char *line){
  * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
-void read_command(int *command, int is_game_over) {
-	char command_line[MAX_COMMAND_LENGTH];
+void read_command(list *s, int mode) {
+	char* command_line;
+	command_line = (char*)malloc(sizeof(char));
 	do{
+		printf("Enter next command\n");
 		if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
-			command[0]=5;
+			printf("Error: read error occurred\n");
+			add_command(s,5,NULL,NULL,0.); /* change 5 to the relevant index of exit. */
+			free(command_line);
 			return;
 		}
 	}while(check_if_blank(command_line)==1);
-	if (is_valid_command(command_line, command, is_game_over) == 0) {
-		printf("Error: invalid command\n");
-		read_command(command, is_game_over);
+	if (is_valid_command(command_line, mode) == 0) {
+		printf("Error: invalid command\n"); /* change: print_relevant_error_message(error) */
+		free(command_line);
+		read_command(s, mode);
 	}
 }
 
