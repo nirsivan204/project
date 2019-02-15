@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "SPBufferset.h"
 #include "BoardFileHandler.h"
+#include "backtracking_stack.h"
 int current_mode = INIT;
 
 //int this_is_global;
@@ -72,12 +73,15 @@ int current_mode = INIT;
 //
 //
 //
-int main(){
+void file_system_tester(){
 	BOARD a,b;
-	list *s;
 	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
 	print_board(&a,&b);
 	save_board("C:/Users/nir/workspace/project/boards/test1.txt",&a,&b,0);
+}
+
+void command_stack_tester(){
+	list *s;
 	s = init_list();
 	int args[]= {1,2,3};
 	add_command(s,1,args,"nir",0,NULL);
@@ -91,6 +95,32 @@ int main(){
 	forward_current_command(s);
 	add_command(s,3,args,"amram",0,NULL);
 	print_list(s,1);
+}
+
+void backtracking_stack_tester(){
+	stack *s = init_stack();
+	BOARD *b = NULL;
+	int x,y;
+	push(s,NULL,1,1);
+	push(s,NULL,2,2);
+	push(s,NULL,3,3);
+	print_stack(s);
+	pop(s,&b,&x,&y);
+	printf("pop: x = %d y = %d\n",x,y);
+	pop(s,&b,&x,&y);
+	printf("pop: x = %d y = %d\n",x,y);
+	pop(s,&b,&x,&y);
+	printf("pop: x = %d y = %d\n",x,y);
+	print_stack(s);
+
+	delete_stack(s);
+	//free(s);
+	print_stack(s);
+}
+
+int main(){
+	backtracking_stack_tester();
+
 	return 0;
 }
 
