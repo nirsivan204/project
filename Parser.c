@@ -1,8 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "assert.h"
 #include "Parser.h"
 #include "ReadingAux.h"
+
+int is_in_array(int value, int N, int array[]) {
+	int index = 0;
+	for (; index < N; index++) {
+		if (value == array[index]) {
+			return 1;
+		}
+	}
+	return 0;
+}
 
 /**
  * gets the number of arguments that required by 'command'.
@@ -14,15 +25,17 @@
  * 2 - if 'command' is "hint".
  * 0 - otherwise ('command' is "validate", "restart" or "exit").
  */
-int num_of_params(int command) {
-	switch (command) {
-	case 1: /* set */
-		return 3;
-	case 2: /* hint */
-		return 2;
-	default:
-		return 0;
+int get_command_num_of_params(int command) {
+	if (command == 1 || command == 2 || command == 14 || command == 15) {
+		return 1;
 	}
+	if (command == 3 || command == 4 || command == 17) {
+		return 2;
+	}
+	if (command == 3 || command == 4 || command == 17) {
+		return 2;
+	}
+	return command == 7 ? 3 : 0;
 }
 
 /**
@@ -52,54 +65,21 @@ int is_legal_number(int number, int minValue, int maxValue) {
  * 1 - if the input string can represent a valid command as described above.
  * 0 - otherwise
  */
-int search_command(char *string, int mode) {
-	int index;
-	char *commands[] = {"set", "hint", "validate", "restart", "exit"};
-	index = (mode == 1) ? 3 : 0;
-	for (; index < 5; index++)
-		if (strcmp(string, commands[index]) == 0)
+int get_command_name(char *string, int mode) {
+	int index, top_index;
+	char *commands[] = COMMAND_NAMES;
+	assert(mode == 1 || mode == 2 || mode == 3);
+	switch (mode) {
+	case 1: index = 14, top_index = 15; break; /* Init mode */
+	case 2: index = 5, top_index = 16; break; /* Edit mode */
+	case 3: index = 0, top_index = 15; break; /* Solve mode */
+	}
+	for (; index <= top_index; index++) {
+		if (strcmp(string, commands[index]) == 0) {
 			return ++index;
-	return 0;
-}
-
-/**
- * stores the line's first string (the command word) in 'command' as its first element, and then calls search_command.
- * If search_command returns -1, then the function returns -1 ('command_input' represents an invalid command).
- * Otherwise, it calls num_of_params and checks if 'command_input' contains enough arguments. If not, it returns -1
- * ('command_input' represents an invalid command), and otherwise it stores the arguments in their proper place in 'command'.
- *
- * @param command_input - an array containing the input line that was filled in the read_command function.
- * @param command - the array that represents a command:
- * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
- * @param is_game_over -  1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
- *
- * @return
- * 1 - if the input line can represent a valid command as described above.
- * 0 - otherwise
- */
-int is_valid_command(char* command_line, int mode) {
-	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
-		printf("Error: invalid command\n");
-	}
-	char *string = "";
-	int index = 0;
-	string = strtok(command_line, " \t\r\n");
-	/*
-	command[index] = search_command(string, mode);
-
-	if (command[index] == 0) {
-		return 0;
-	}
-
-	for (index = 1; index <= num_of_params(command[0]); index++) {
-		string = strtok(NULL, " \t\r\n");
-		if (string == NULL) {
-			return 0;
 		}
-		command[index] = atoi(string);
 	}
-	*/
-	return 1;
+	return 0;
 }
 
 /**
@@ -121,6 +101,53 @@ int check_if_blank(char *line){
 	return 1;
 }
 
+
+/**
+ * stores the line's first string (the command word) in 'command' as its first element, and then calls search_command.
+ * If search_command returns -1, then the function returns -1 ('command_input' represents an invalid command).
+ * Otherwise, it calls num_of_params and checks if 'command_input' contains enough arguments. If not, it returns -1
+ * ('command_input' represents an invalid command), and otherwise it stores the arguments in their proper place in 'command'.
+ *
+ * @param command_input - an array containing the input line that was filled in the read_command function.
+ * @param command - the array that represents a command:
+ * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
+ * @param is_game_over -  1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
+ *
+ * @return
+ * 1 - if the input line can represent a valid command as described above.
+ * 0 - otherwise
+ */
+int is_valid_command(char* command_line, int mode, int args[], char path[], float threshold[]) {
+	char *string = "";
+	int command_name/*, index = 0*/;
+	if (check_if_blank(command_line)==1) {
+		return 0;
+	}
+	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
+		printf("Error: too many characters in a single line\n");/* change: print_relevant_error_message(error) */
+		return 0;
+	}
+	string = strtok(command_line, " \t\r\n");
+	command_name = get_command_name(string, mode);
+	if (command_name == 0) {
+		printf("Error: incorrect name\n");/* change: print_relevant_error_message(error) */
+		return 0;
+	}
+
+//	for (index = 1; index <= num_of_params(command[0]); index++) {
+//		string = strtok(NULL, " \t\r\n");
+//		if (string == NULL) {
+//			return 0;
+//		}
+//		command[index] = atoi(string);
+//	}
+
+	printf("Error: invalid command\n"); /* change: print_relevant_error_message(error) */
+
+	return 1;
+}
+
+
 /**
  * reads the user's input line and creates an array that will contain it.
  * If the input line isn't null, it calls is_valid_command (depends also on the 'is_puzzle_solved' parameter). If is_valid_command
@@ -131,23 +158,25 @@ int check_if_blank(char *line){
  * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
-void read_command(list *s, int mode) {
+int read_command(int mode, int args[], char path[], float threshold[]) {
 	char* command_line;
+	printf("Enter next command\n");
 	command_line = (char*)malloc(sizeof(char));
-	do{
-		printf("Enter next command\n");
-		if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
-			printf("Error: read error occurred\n");
-			add_command(s,5,NULL,NULL,0.); /* change 5 to the relevant index of exit. */
-			free(command_line);
-			return;
-		}
-	}while(check_if_blank(command_line)==1);
-	if (is_valid_command(command_line, mode) == 0) {
-		printf("Error: invalid command\n"); /* change: print_relevant_error_message(error) */
+	if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
+		printf("Error: read error occurred\n");
 		free(command_line);
-		read_command(s, mode);
+		return 0;
 	}
+	int result = is_valid_command(command_line, mode, args, path, threshold);
+	free(command_line);
+	return result;
+
+
+//	args[0] = 1;
+//	args[1] = 2;
+//	strcpy(path, "s");
+//	threshold[0] = 3.5;
+//	printf("%d, %d, %s, %f\n", args[0], args[1], path, threshold[0]);
 }
 
 /**

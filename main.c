@@ -37,8 +37,12 @@ int main(int argc, char *argv[]){
 //	}while(command[0] == RESTART);
 
 
-//	float f;
+//	float f = 0.;
 //	scanf("%d",&f);
-
+	int args[3];
+	char path[MAX_COMMAND_LENGTH] = "amram nevo";
+	float threshold[1];
+	printf("%d\n", read_command(3, args, path, threshold));
+//	printf("%d, %d, %s, %f", args[0], args[1], path, threshold[0]);
 	return 0;
 }
