@@ -45,6 +45,10 @@ void delete_block(BLOCK* block) {
 }
 
 void delete_board(BOARD* board) {
+	if(board == NULL){
+		printf("board is NULL");
+		return;
+	}
 	int i = 0;
 	int j = 0;
 	for(;i<board->N;i++) {
