@@ -7,6 +7,7 @@
  */
 
 #include "BoardHandle.h"
+#include "backtracking_stack.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>

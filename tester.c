@@ -98,24 +98,25 @@ void command_stack_tester(){
 }
 
 void backtracking_stack_tester(){
-	stack *s = init_stack();
-	BOARD *b = NULL;
-	int x,y;
-	push(s,NULL,1,1);
-	push(s,NULL,2,2);
-	push(s,NULL,3,3);
+	stack *s = init_stack(3);
+	int x,y,index=80;
+	push(s,1,1);
+	push(s,2,2);
+	push(s,3,3);
 	print_stack(s);
-	pop(s,&b,&x,&y);
-	printf("pop: x = %d y = %d\n",x,y);
-	pop(s,&b,&x,&y);
-	printf("pop: x = %d y = %d\n",x,y);
-	pop(s,&b,&x,&y);
-	printf("pop: x = %d y = %d\n",x,y);
+	pop(s,&x,&y,&index);
+	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
+	pop(s,&x,&y,&index);
+	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
+	pop(s,&x,&y,&index);
+	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
+	pop(s,&x,&y,&index);
+	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
 	print_stack(s);
 
-	delete_stack(s);
+	//delete_stack(s);
 	//free(s);
-	print_stack(s);
+	//print_stack(s);
 }
 
 int main(){
