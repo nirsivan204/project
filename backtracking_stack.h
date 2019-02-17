@@ -10,18 +10,20 @@
 #define BACKTRACKING_STACK_H_
 
 typedef struct stack_element{
-	BOARD* board;
+	//BOARD* board;
 	int x,y;
+	int next_digit;
 	struct stack_element *next;
 }stack_element;
 
 typedef struct stack{
+	int digits_range;
 	stack_element *top;
 }stack;
 
-stack *init_stack();
+stack *init_stack(int digits_range);
 void delete_stack(stack *s);
-void push(stack* s,BOARD *board, int x, int y);
-int pop(stack *s , BOARD **board, int *x,int *y);
+void push(stack *s ,int x, int y);
+int pop(stack *s , int *x,int *y, int *next_digit);
 void print_stack(stack *s);
 #endif /* BACKTRACKING_STACK_H_ */
