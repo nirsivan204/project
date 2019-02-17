@@ -5,7 +5,7 @@
  *      Author: nir
  */
 #include "BoardFileHandler.h"
-#include "ReadingAux.h"
+#include "MainAux.h"
 #include "assert.h"
 #include <stdlib.h>
 #include <stdio.h>

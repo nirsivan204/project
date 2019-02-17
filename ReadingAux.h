@@ -8,6 +8,6 @@
 #ifndef READINGAUX_H_
 #define READINGAUX_H_
 
-int is_white_space(char c);
+//int is_white_space(char c);
 
 #endif /* READINGAUX_H_ */

@@ -110,13 +110,6 @@ int check_if_blank(char *line){
 	return 1;
 }
 
-void init_params(char *params[]) {
-	unsigned int i;
-	for(i=0;i<4;i++){
-		params[i] = "x";
-	}
-}
-
 void free_params(char *params[], int num) {
 	unsigned int i;
 	for(i=0;i<num;i++){
@@ -130,13 +123,19 @@ int fill_params(char *params[], char *string) {
 	while(string && num < 4) {
 		params[num] = (char*) malloc((int)strlen(string) * sizeof(char));
 		strcpy(params[num], string);
-		printf("next_in_command_line = %s\n", params[num]);
 		num++;
 		string = strtok(NULL, " \t\r\n");
 	}
 	return num;
 }
 
+int is_integer(char *string, int i) {
+	for (;i<strlen(string);i++) {
+		if (!isdigit(string[i])){
+			return 0;
+		}
+	}
+}
 int update_integer(char *string, int args[], int index) {
 	for (int i=0;i<strlen(string);i++) {
 		if (!isdigit(string[i])){
@@ -147,22 +146,40 @@ int update_integer(char *string, int args[], int index) {
 	return 1;
 }
 
-int update_float(char *string, float threshold[]) {
-	int num_of_dots =0;
-	for (int i=0;i<strlen(string);i++) {
-		if (!isdigit(string[i])){
-			if (string[i] != '.' || num_of_dots > 0) {
-				printf("false\n");
-				return 0;
-			}
-			num_of_dots++;
+int update_float(char* string, float* threshold) {
+	int i, num_of_dots = FALSE;
+	while (i<strlen(string) && num_of_dots == FALSE) {
+		if (string[i] == '.') {
+			num_of_dots = TRUE;
+		}
+		else if (string[i] != '0') {
+			return FALSE;
 		}
 	}
-	threshold[0] = atof(string);
-	return 1;
+	for (;i<strlen(string);i++) {
+		if (!isdigit(string[i])){
+			if (string[i] != '.' || num_of_dots == TRUE) {
+				return 0;
+			}
+			num_of_dots = TRUE;
+		}
+	}
+	*threshold = atof(string);
+	return TRUE;
+//	int num_of_dots = FALSE;
+//	for (int i=0;i<strlen(string);i++) {
+//		if (!isdigit(string[i])){
+//			if (string[i] != '.' || num_of_dots == TRUE) {
+//				return 0;
+//			}
+//			num_of_dots = TRUE;
+//		}
+//	}
+//	*threshold = atof(string);
+//	return 1;
 }
 
-int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float threshold[]) {
+int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold) {
 	int index = 0;
 	if (num_of_params > 1 || command_name == 1) { /* num_of_params is 2 or 3, or command is 'mark_errors'*/
 		for (; index < num_of_params; index++) {
@@ -199,7 +216,7 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
  * 1 - if the input line can represent a valid command as described above.
  * 0 - otherwise
  */
-int is_valid_command(char* command_line, int mode, int args[], char path[], float threshold[]) {
+int get_command(char* command_line, int mode, int args[], char path[], float* threshold) {
 	char *string = "", *params[4];
 	int command_name, num_of_params, compare, invalid_param;
 	if (check_if_blank(command_line)==1) {
@@ -228,16 +245,9 @@ int is_valid_command(char* command_line, int mode, int args[], char path[], floa
 		free_params(params, num_of_params);
 		return 0;
 	}
-
-//	printf("%s, len = %d\n", string, (int)strlen(string));
-//	printf("param0: %s\n", params[0]);
-//	printf("param1: %s\n", params[1]);
-//	printf("param2: %s\n", params[2]);
-//	printf("param3: %s\n", params[3]);
-//	printf("params: %s, %s, %s, %s\n", params[0], params[1], params[2], params[3]);
 	free_params(params, num_of_params);
 
-	return 1;
+	return command_name;
 }
 
 
@@ -251,53 +261,19 @@ int is_valid_command(char* command_line, int mode, int args[], char path[], floa
  * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
-int read_command(int mode, int args[], char path[], float threshold[]) {
+int read_command(int mode, int args[], char path[], float* threshold) {
+	int command;
 	char* command_line;
 	printf("Enter next command\n");
+	fflush(stdout);
 	command_line = (char*)malloc(sizeof(char));
 	if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
 		printf("Error: read error occurred\n");
 		free(command_line);
 		return 0;
 	}
-	int result = is_valid_command(command_line, mode, args, path, threshold);
+	command = get_command(command_line, mode, args, path, threshold);
 	free(command_line);
-	return result;
-
-
-//	args[0] = 1;
-//	args[1] = 2;
-//	strcpy(path, "s");
-//	threshold[0] = 3.5;
-//	printf("%d, %d, %s, %f\n", args[0], args[1], path, threshold[0]);
-}
-
-/**
- * asks the user to input a number that represents the number of "fixed" cells. if the number isn't between 0 to 80,
- * the function prints an error and the process repeats itself until the input is valid.
- * if we reach EOF, the function prints an exit message and terminates.
- *
- * @return
- * the number of "fixed" cells - if the number is valid as described above.
- * -1 - otherwise (EOF or error)
- */
-int num_of_fixed_cells() {
-	int num_Of_cells;
-	int scanf_res;
-	printf("Please enter the number of cells to fill [0-80]:\n");
-	scanf_res = scanf("%d", &num_Of_cells);
-	if(scanf_res<EOF){
-		printf("Error: num_of_fixed_cells() has failed\n");
-		return -1;
-	}
-	if (scanf_res == EOF) {/* EOF */
-		printf("Exiting...\n");
-		return -1;
-	}
-	if (is_legal_number(num_Of_cells, 0, 80) == 0) {
-		printf("Error: invalid number of cells to fill (should be between 0 and 80)\n");
-		return num_of_fixed_cells();
-	}
-	return num_Of_cells;
+	return command;
 }
 
