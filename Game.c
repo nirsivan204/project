@@ -135,21 +135,43 @@ int set(BOARD *board,BOARD *fix_board, int x, int y, int z){
  * 1 - if the function 'set' is called and returns 1 (if the current puzzle has been completed by filling the last empty cell).
  * 0 - otherwise.
  */
-int execute_command(int *command, BOARD *board, BOARD *fix_board, BOARD *solved_board) {
-	switch (command[0]) {
-	case SET:
-		return set(board, fix_board, --command[1], --command[2], command[3]);
-	case HINT:
-		hint(solved_board, --command[1], --command[2]);
+int execute_command(int command, BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list, int *markErrors, \
+		int* mode, int args[], char path[], float* threshold) {
+	switch (command) {
+	case Mark_errors:
+//		return mark_errors(markErrors);
 		break;
-	case VALIDATE:
-		validate(board, solved_board);
+	case Guess:
 		break;
-	case RESTART:
-		restart_game();
+	case Hint:
 		break;
-	case EXIT:
-		exit_game();
+	case Guess_hint:
+		break;
+	case Autofill:
+		break;
+	case Print_board:
+		break;
+	case Set:
+		break;
+	case Validate:
+		break;
+	case Undo:
+		break;
+	case Redo:
+		break;
+	case Num_solutions:
+		break;
+	case Reset:
+		break;
+	case Exit:
+		break;
+	case Save:
+		break;
+	case Solve:
+		break;
+	case Edit:
+		break;
+	case Generate:
 		break;
 	}
 	return 0;
