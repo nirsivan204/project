@@ -1,19 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "assert.h"
 #include "Parser.h"
 #include "ReadingAux.h"
-
-int is_in_array(int value, int N, int array[]) {
-	int index = 0;
-	for (; index < N; index++) {
-		if (value == array[index]) {
-			return 1;
-		}
-	}
-	return 0;
-}
 
 /**
  * gets the number of arguments that required by 'command'.
@@ -32,10 +23,28 @@ int get_command_num_of_params(int command) {
 	if (command == 3 || command == 4 || command == 17) {
 		return 2;
 	}
-	if (command == 3 || command == 4 || command == 17) {
-		return 2;
+	if (command == 7) {
+		return 3;
 	}
-	return command == 7 ? 3 : 0;
+	return 0;
+}
+
+/**
+ * compare the number of parameters in the user's command to the command's valid number of parameters, calculated with get_command_num_of_params.
+ *
+ * @param command_name - index of a command.
+ * @param num_of_params - number of parameters in the user's command.
+ *
+ * @return
+ * 1 - if user put too many parameters.
+ * 0 - if num_of_params is valid.
+ * -1 - if user didn't put enough parameters.
+ */
+int compare_num_of_params(int command_name, int num_of_params) {
+	if (command_name == 16) { /*edit can contain 0 or 1 parameter*/
+		return num_of_params < 2 ? 0 : 1;
+	}
+	return num_of_params - get_command_num_of_params(command_name);
 }
 
 /**
@@ -101,6 +110,79 @@ int check_if_blank(char *line){
 	return 1;
 }
 
+void init_params(char *params[]) {
+	unsigned int i;
+	for(i=0;i<4;i++){
+		params[i] = "x";
+	}
+}
+
+void free_params(char *params[], int num) {
+	unsigned int i;
+	for(i=0;i<num;i++){
+		free(params[i]);
+	}
+}
+
+int fill_params(char *params[], char *string) {
+	int num = 0;
+	string = strtok(NULL, " \t\r\n");
+	while(string && num < 4) {
+		params[num] = (char*) malloc((int)strlen(string) * sizeof(char));
+		strcpy(params[num], string);
+		printf("next_in_command_line = %s\n", params[num]);
+		num++;
+		string = strtok(NULL, " \t\r\n");
+	}
+	return num;
+}
+
+int update_integer(char *string, int args[], int index) {
+	for (int i=0;i<strlen(string);i++) {
+		if (!isdigit(string[i])){
+			return 0;
+		}
+	}
+	args[index] = atoi(string);
+	return 1;
+}
+
+int update_float(char *string, float threshold[]) {
+	int num_of_dots =0;
+	for (int i=0;i<strlen(string);i++) {
+		if (!isdigit(string[i])){
+			if (string[i] != '.' || num_of_dots > 0) {
+				printf("false\n");
+				return 0;
+			}
+			num_of_dots++;
+		}
+	}
+	threshold[0] = atof(string);
+	return 1;
+}
+
+int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float threshold[]) {
+	int index = 0;
+	if (num_of_params > 1 || command_name == 1) { /* num_of_params is 2 or 3, or command is 'mark_errors'*/
+		for (; index < num_of_params; index++) {
+			if (!update_integer(params[index], args, index)) {
+				return index;
+			}
+		}
+	}
+	else if (num_of_params > 0) { /* num_of_params == 1 */
+		if (command_name == 2) { /* command is 'guess'*/
+			if (!update_float(params[index], threshold)) {
+				return index;
+			}
+		}
+		else { /* command is 'save', 'edit' or 'solve'*/
+			strcpy(path, params[index]);
+		}
+	}
+	return -1;
+}
 
 /**
  * stores the line's first string (the command word) in 'command' as its first element, and then calls search_command.
@@ -118,8 +200,8 @@ int check_if_blank(char *line){
  * 0 - otherwise
  */
 int is_valid_command(char* command_line, int mode, int args[], char path[], float threshold[]) {
-	char *string = "";
-	int command_name/*, index = 0*/;
+	char *string = "", *params[4];
+	int command_name, num_of_params, compare, invalid_param;
 	if (check_if_blank(command_line)==1) {
 		return 0;
 	}
@@ -133,16 +215,27 @@ int is_valid_command(char* command_line, int mode, int args[], char path[], floa
 		printf("Error: incorrect name\n");/* change: print_relevant_error_message(error) */
 		return 0;
 	}
+	num_of_params = fill_params(params, string);
+	compare = compare_num_of_params(command_name, num_of_params);
+	if (compare != 0) {
+		printf("%s", compare > 0 ? "Error: too many parameters\n" : "Error: not enough parameters\n");/* change: print_relevant_error_message(error) */
+		free_params(params, num_of_params);
+		return 0;
+	}
+	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold);
+	if (invalid_param > -1) {
+		printf("Error: invalid parameter: %d\n", ++invalid_param);/* change: print_relevant_error_message(error) */
+		free_params(params, num_of_params);
+		return 0;
+	}
 
-//	for (index = 1; index <= num_of_params(command[0]); index++) {
-//		string = strtok(NULL, " \t\r\n");
-//		if (string == NULL) {
-//			return 0;
-//		}
-//		command[index] = atoi(string);
-//	}
-
-	printf("Error: invalid command\n"); /* change: print_relevant_error_message(error) */
+//	printf("%s, len = %d\n", string, (int)strlen(string));
+//	printf("param0: %s\n", params[0]);
+//	printf("param1: %s\n", params[1]);
+//	printf("param2: %s\n", params[2]);
+//	printf("param3: %s\n", params[3]);
+//	printf("params: %s, %s, %s, %s\n", params[0], params[1], params[2], params[3]);
+	free_params(params, num_of_params);
 
 	return 1;
 }

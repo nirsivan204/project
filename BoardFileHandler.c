@@ -11,6 +11,15 @@
 #include <stdio.h>
 #include <ctype.h>
 
+//char ignore_white_spaces_in_string(char *string){
+//	char res = fgetc(string);
+//	while(is_white_space(res)){
+//		res = fgetc(file);
+//		continue;
+//	}
+//	return res;
+//}
+
 char ignore_white_spaces_in_file(FILE *file){
 	char res = fgetc(file);
 	while(is_white_space(res)){

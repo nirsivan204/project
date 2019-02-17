@@ -6,6 +6,7 @@
  * read_command - reads, interprets and checks validation of the user's inputs lines that represents commands.
  */
 #include "command_stack.h"
+#include "ReadingAux.h"
 #define MAX_COMMAND_LENGTH 256
 #define COMMAND_NAMES {"mark_errors", "guess", "hint", "guess_hint", "autofill", "print_board", "set", "validate", "undo", "redo", \
 	"num_solutions", "reset", "exit", "save", "solve", "edit", "generate"}
