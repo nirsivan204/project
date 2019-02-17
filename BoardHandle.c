@@ -200,7 +200,7 @@ void print_block(BLOCK *block){ /*printing a given block*/
  * @param fixed_block - the fixed block. the function needs it to print "." before fixed values, or " " before not-fixed values.
  * @param row         - the row (between 0 to N) needed to be printed
  */
-void print_block_row(BLOCK *block,BLOCK *fixed_block,int row){ /*printing the row of block, by the printing rules in the header file*/
+void print_block_row(BLOCK *block,BLOCK *fixed_block,int row,int mark_errors,int mode){ /*printing the row of block, by the printing rules in the header file*/
 	int i;
 	for (i=0;i<block->N;i++){/*for every col*/
 		printf(" ");
@@ -210,14 +210,14 @@ void print_block_row(BLOCK *block,BLOCK *fixed_block,int row){ /*printing the ro
 		else{
 			printf("%d",block->values[row][i]);
 		}
-		if(fixed_block->values[row][i]==1){ /*if fixed, print "."*/
+		if(fixed_block->values[row][i]==1 && mode != EDIT){ /*if fixed, print "."*/
 			printf(".");
-		}
-		if(fixed_block->values[row][i]==2){ /*if erroneous, print "*" */
-			printf("*");
-		}
-		if(fixed_block->values[row][i]==0){ /*else print " "*/
-			printf(" ");
+		}else{
+			if(fixed_block->values[row][i]==2 && (mode == EDIT || mark_errors==1)){ /*if erroneous, print "*" */
+				printf("*");
+			}else{
+				printf(" ");
+			}
 		}
 	}
 }
@@ -226,7 +226,7 @@ void print_block_row(BLOCK *block,BLOCK *fixed_block,int row){ /*printing the ro
  * this function defined in the .h file.
  */
 
-void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the printing rules in the header file*/
+void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode){ /*printing the board, by the printing rules in the header file*/
 	int block_row = 0 ;
 	int block_col = 0 ;
 	int row = 0;
@@ -235,7 +235,7 @@ void print_board(BOARD *board, BOARD *fixed_board){ /*printing the board, by the
 		for(row = 0;row<board->M;row++){/*for each row in a block*/
 			printf("|");
 			for (block_col = 0;block_col<board->M;block_col++){/*for each block in the row*/
-				print_block_row(board->blocks[block_row][block_col],fixed_board->blocks[block_row][block_col],row); /*print the row*/
+				print_block_row(board->blocks[block_row][block_col],fixed_board->blocks[block_row][block_col],row , mark_errors,mode); /*print the row*/
 				printf(" |");
 			}
 			printf("\n");

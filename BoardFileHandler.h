@@ -6,6 +6,7 @@
  */
 
 #include "BoardHandle.h"
+#include "MainAux.h"
 
 #ifndef BOARDFILEHANDLER_H_
 #define BOARDFILEHANDLER_H_

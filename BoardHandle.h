@@ -83,7 +83,7 @@ int is_valid_insertion(BOARD *board,int x,int y,int z);
  * @param fixed_board - the fixed board. the function needs it to print "." before fixed values, or " " before not-fixed values.
  *
  */
-void print_board(BOARD *board, BOARD *fixed_board);
+void print_board(BOARD *board, BOARD *fixed_board, int mark_errors,int mode);
 
 /*this function is copying all the cells' value of one board to another board.
  * @param in_board  - the board needed to be copied.
