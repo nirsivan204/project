@@ -158,38 +158,29 @@ int update_float(char* string, float* threshold) {
 	}
 	if (is_integer(string, 0, i) && is_integer(string, i+1, strlen(string))) {
 		*threshold = atof(string);
-		return TRUE;
+		if (*threshold >= 0 && *threshold <= 1) {
+			return TRUE;
+		}
 	}
 	return FALSE;
-//	int num_of_dots = FALSE;
-//	for (int i=0;i<strlen(string);i++) {
-//		if (!isdigit(string[i])){
-//			if (string[i] != '.' || num_of_dots == TRUE) {
-//				return 0;
-//			}
-//			num_of_dots = TRUE;
-//		}
-//	}
-//	*threshold = atof(string);
-//	return 1;
 }
 
 int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold) {
 	int index = 0;
-	if (num_of_params > 1 || command_name == 1) { /* num_of_params is 2 or 3, or command is 'mark_errors'*/
+	if (num_of_params > 1 || command_name == 1) { /*command is 'set', 'hint', 'guess_hint', 'generate' or 'mark_errors'*/
 		for (; index < num_of_params; index++) {
 			if (!update_integer(params[index], args, index)) {
 				return index;
 			}
 		}
 	}
-	else if (num_of_params > 0) { /* num_of_params == 1 */
-		if (command_name == 2) { /* command is 'guess'*/
-			if (!update_float(params[index], threshold)) {
-				return index;
-			}
-		}
-		else { /* command is 'save', 'edit' or 'solve'*/
+	if (num_of_params == 1) {
+		switch (command_name) {
+		case 1: /*command is 'mark_errors', and args[0] was updated to be an integer successfully*/
+			return args[0] > 1 ? 0 : -1;
+		case 2: /* command is 'guess'*/
+			return !update_float(params[index], threshold) ? 0 : -1;
+		default: /* command is 'save', 'edit' or 'solve'*/
 			strcpy(path, params[index]);
 		}
 	}

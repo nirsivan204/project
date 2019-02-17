@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "strings.h"
+#include "MainAux.h"
 
 #ifndef BOARDHANDLER_H_
 #define BOARDHANDLER_H_
