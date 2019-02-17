@@ -67,7 +67,7 @@ void load_board(char *path,BOARD *board, BOARD *fix_board){
 	printf("%d %d\n",N,M);
 	*board = *init_board(N,M);
 	*fix_board = *init_board(N,M);
-	print_board(board,fix_board);
+	//print_board(board,fix_board);
 	(fgetc(file));
 	for(;y<M*N;y++){
 		for(x=0;x<N*M;x++){

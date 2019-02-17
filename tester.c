@@ -98,11 +98,11 @@ void command_stack_tester(){
 }
 
 void backtracking_stack_tester(){
-	stack *s = init_stack(3);
+	stack *s = init_stack(1);
 	int x,y,index=80;
 	push(s,1,1);
 	push(s,2,2);
-	push(s,3,3);
+	//push(s,3,3);
 	print_stack(s);
 	pop(s,&x,&y,&index);
 	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
@@ -112,6 +112,9 @@ void backtracking_stack_tester(){
 	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
 	pop(s,&x,&y,&index);
 	printf("pop: x = %d y = %d,index = %d\n",x,y,index);
+	if(s->top == NULL){
+		printf("nir");
+	}
 	print_stack(s);
 
 	//delete_stack(s);
@@ -119,8 +122,16 @@ void backtracking_stack_tester(){
 	//print_stack(s);
 }
 
+void exhust_backtrack_tester(){
+	BOARD a,b;
+	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
+	print_board(&a,&b);
+	printf("res= %d",exhaustive_backtracking(&a));
+}
+
+
 int main(){
-	backtracking_stack_tester();
+	exhust_backtrack_tester();
 
 	return 0;
 }

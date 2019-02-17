@@ -40,3 +40,6 @@ void initialize_puzzle (int fix_num,BOARD *game_board ,BOARD *fix_board, BOARD *
  *
  */
 int build_board(BOARD *board, int is_determin);
+
+
+int exhaustive_backtracking(BOARD *board);

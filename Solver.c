@@ -238,10 +238,10 @@ void initialize_puzzle (int fix_num, BOARD *game_board ,BOARD *fix_board, BOARD 
 }
 
 int find_next_empty_cell(BOARD *board,int *x,int *y){
-	int i,j;
-	for (i=*y;i<board->N;i++){
-		for (j=0;j<board->M;j++){
-			if(get_element_from_board(board,*x,*y)==0){
+	int i,j = *y;
+	for (i=0;i<board->N*board->M;i++){
+		for (j=0;j<board->N*board->M;j++){
+			if(get_element_from_board(board,j,i)==0){
 				*x = j;
 				*y = i;
 				return 1;
@@ -253,33 +253,34 @@ int find_next_empty_cell(BOARD *board,int *x,int *y){
 
 int exhaustive_backtracking(BOARD *board){
 	stack *s = init_stack(board->M*board->N);
-	int num_of_legal_digits,x,y,index,res=0;
-	int *legal_digits = (int *)malloc(board->N*board->M);
+	int x=0,y=0,digit,res=0;
+	int pop_res;
 	if(find_next_empty_cell(board,&x,&y)==-1){
 		return 1;
 	}
-	num_of_legal_digits = find_legal_digits(legal_digits,board, x, y);
 	push(s,x,y);
-	free(legal_digits);
 	while(s->top!=NULL){
-		while(pop(s,&x,&y,&index)==1){
+		pop_res = pop(s,&x,&y,&digit);
+		while(pop_res==1){
 			set_element_to_board(board,x,y,0);
+			pop_res = pop(s,&x,&y,&digit);
 		}
-		while(1){
-			set_element_to_board(board,x,y,legal_digits[index]);
-			if(find_next_empty_cell(board,&x,&y)==-1){
-				res++;
-				break;
-			}else{
-				num_of_legal_digits = find_legal_digits(legal_digits,board, x, y);
-				if(num_of_legal_digits==0){
-					break;
-				}
-				push(s,x,y);
-			}
+		if(pop_res == -1){
+			break;
+		}
+		if(!is_valid_insertion(board,x,y,digit)){
+			continue;
+		}
+		set_element_to_board(board,x,y,digit);
+		print_board(board,board);
+		if(find_next_empty_cell(board,&x,&y)==-1){
+			res++;
+			set_element_to_board(board,x,y,0);
+		}else{
+			push(s,x,y);
 		}
 	}
-	return 0;
+	return res;
 }
 
 

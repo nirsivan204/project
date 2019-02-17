@@ -55,7 +55,7 @@ int pop(stack *s, int *x,int *y,int *next_digit){
 	*y = s->top->y;
 	//*board = s->top->board;
 	s->top->next_digit++;
-	if(s->top->next_digit<s->digits_range){
+	if(s->top->next_digit<=s->digits_range){
 		*next_digit = s->top->next_digit;
 		return 0;
 	}else{
@@ -66,7 +66,6 @@ int pop(stack *s, int *x,int *y,int *next_digit){
 	}
 }
 void print_stack_element(stack_element *element){
-	int i = 0;
 	if(element == NULL){
 		return;
 	}

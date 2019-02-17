@@ -156,7 +156,7 @@ int is_valid_row(BOARD *board,int row,int z) {/*checks if this row in  board con
  * 0 - otherwise
  */
 int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains z*/
-	int index_col, index_row;
+	int index_col= 0 , index_row = 0;
 	for (index_col = 0; index_col < block->N; index_col++){ /*for each column of the block*/
 		for (index_row = 0; index_row < block->M; index_row++){/*for each row of the block*/
 			if (get_element_from_block(block, index_col, index_row) == z){/*if the element in <row,column> is z */
@@ -172,7 +172,7 @@ int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains
  */
 
 int is_valid_insertion(BOARD *board,int x,int y,int z) { /*returns if z can be set in cell <x,y> in board*/
-	return is_valid_column(board,x,z) && is_valid_row(board,y,z) && is_valid_block(board->blocks[y/board->N][x/board->M],z);
+	return is_valid_column(board,x,z) && is_valid_row(board,y,z) && is_valid_block(board->blocks[y/board->M][x/board->N],z);
 }
 
 /*
