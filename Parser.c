@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include "assert.h"
 #include "Parser.h"
-#include "ReadingAux.h"
 
 /**
  * gets the number of arguments that required by 'command'.
@@ -129,43 +128,39 @@ int fill_params(char *params[], char *string) {
 	return num;
 }
 
-int is_integer(char *string, int i) {
-	for (;i<strlen(string);i++) {
-		if (!isdigit(string[i])){
-			return 0;
-		}
+int is_integer(char *string, int i, int length) {
+	if (i >= length) {
+		return FALSE;
 	}
-}
-int update_integer(char *string, int args[], int index) {
-	for (int i=0;i<strlen(string);i++) {
+	for (;i<length;i++) {
 		if (!isdigit(string[i])){
-			return 0;
-		}
-	}
-	args[index] = atoi(string);
-	return 1;
-}
-
-int update_float(char* string, float* threshold) {
-	int i, num_of_dots = FALSE;
-	while (i<strlen(string) && num_of_dots == FALSE) {
-		if (string[i] == '.') {
-			num_of_dots = TRUE;
-		}
-		else if (string[i] != '0') {
 			return FALSE;
 		}
 	}
-	for (;i<strlen(string);i++) {
-		if (!isdigit(string[i])){
-			if (string[i] != '.' || num_of_dots == TRUE) {
-				return 0;
-			}
-			num_of_dots = TRUE;
-		}
-	}
-	*threshold = atof(string);
 	return TRUE;
+}
+
+int update_integer(char *string, int args[], int index) {
+	if (is_integer(string, 0, strlen(string))) {
+		args[index] = atoi(string);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int update_float(char* string, float* threshold) {
+	int i = 0;
+	while (i<strlen(string)) {
+		if (string[i] == '.') {
+			break;
+		}
+		i++;
+	}
+	if (is_integer(string, 0, i) && is_integer(string, i+1, strlen(string))) {
+		*threshold = atof(string);
+		return TRUE;
+	}
+	return FALSE;
 //	int num_of_dots = FALSE;
 //	for (int i=0;i<strlen(string);i++) {
 //		if (!isdigit(string[i])){
