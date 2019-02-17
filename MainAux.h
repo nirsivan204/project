@@ -4,10 +4,10 @@
  *  Created on: 12 בדצמ 2018
  *      Author: nir
  */
-#include "BoardHandle.h"
 
 #ifndef MAINAUX_H_
 #define MAINAUX_H_
+
 #define TRUE 1
 #define FALSE 0
 

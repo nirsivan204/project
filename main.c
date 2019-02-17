@@ -40,12 +40,12 @@ int main(int argc, char *argv[]){
 //	BOARD *game_board;
 //	BOARD *fix_board;
 //	BOARD *solved_board;
-	int mode = 3, markErrors = 1, args[3], command, execute;
+	int mode = 3, markErrors = TRUE, args[3], command, execute;
 	char path[MAX_COMMAND_LENGTH];
 	float threshold = 0;
-	list *command_list;
+//	list *command_list;
 	command = read_command(mode, args, path, &threshold);
-	printf("result of read_command is %d. threshold == %f\n", command, threshold);
+	printf("result of read_command is %d. threshold == %f, path== %s\n", command, threshold, path);
 //	execute = execute_command(command, game_board, fix_board, solved_board, command_list, &markErrors, &mode, args, path, &threshold);
 
 //	printf("%d, %d,%d,%d,%d\n", (int) 0, (int) 0.3, (int) 0.7, (int) 1, (int) 1.5);
