@@ -99,7 +99,7 @@ void print_node(node *node,int with_board){
 		if(node->board_after_command == NULL){
 			printf("board is NULL\n");
 		}else{
-			print_board(node->board_after_command,node->board_after_command);
+			print_board(node->board_after_command,node->board_after_command,1,1);
 		}
 	}
 	printf("|\n|\n\\/\n");
