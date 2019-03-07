@@ -75,8 +75,8 @@ int current_mode = INIT;
 //
 void file_system_tester(){
 	BOARD a,b;
-	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
-	print_board(&a,&b,1,1);
+	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b,3);
+	test_print_board(&a,&b);
 	save_board("C:/Users/nir/workspace/project/boards/test1.txt",&a,&b,0);
 }
 
@@ -124,8 +124,8 @@ void backtracking_stack_tester(){
 
 void exhust_backtrack_tester(){
 	BOARD a,b;
-	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b);
-	print_board(&a,&b,1,1);
+	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b,3);
+	test_print_board(&a,&b);
 	printf("res= %d",exhaustive_backtracking(&a));
 }
 

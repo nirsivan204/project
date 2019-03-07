@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "assert.h"
 #include "Parser.h"
 
 /**
@@ -16,13 +15,13 @@
  * 0 - otherwise ('command' is "validate", "restart" or "exit").
  */
 int get_command_num_of_params(int command) {
-	if (command == 1 || command == 2 || command == 14 || command == 15) {
+	if (command == Mark_errors || command == Guess || command == Save || command == Solve) {
 		return 1;
 	}
-	if (command == 3 || command == 4 || command == 17) {
+	if (command == Hint || command == Guess_hint || command == Generate) {
 		return 2;
 	}
-	if (command == 7) {
+	if (command == Set) {
 		return 3;
 	}
 	return 0;
@@ -39,11 +38,11 @@ int get_command_num_of_params(int command) {
  * 0 - if num_of_params is valid.
  * -1 - if user didn't put enough parameters.
  */
-int compare_num_of_params(int command_name, int num_of_params) {
-	if (command_name == 16) { /*edit can contain 0 or 1 parameter*/
+int compare_num_of_params(int command_name, int num_of_params, int legal_num_of_params) {
+	if (command_name == Edit) { /*edit can contain 0 or 1 parameter*/
 		return num_of_params < 2 ? 0 : 1;
 	}
-	return num_of_params - get_command_num_of_params(command_name);
+	return num_of_params - legal_num_of_params;
 }
 
 /**
@@ -73,23 +72,32 @@ int is_legal_number(int number, int minValue, int maxValue) {
  * 1 - if the input string can represent a valid command as described above.
  * 0 - otherwise
  */
-int get_command_name(char *string, int mode) {
-	int index, top_index;
+int get_command_name(char *string) {
+	int index;
 	char *commands[] = COMMAND_NAMES;
-	assert(mode == 1 || mode == 2 || mode == 3);
-	switch (mode) {
-	case 1: index = 14, top_index = 15; break; /* Init mode */
-	case 2: index = 5, top_index = 16; break; /* Edit mode */
-	case 3: index = 0, top_index = 15; break; /* Solve mode */
-	}
-	for (; index <= top_index; index++) {
+	for (index = 0; index < 17; index++) {
 		if (strcmp(string, commands[index]) == 0) {
 			return ++index;
 		}
 	}
+	print_invalid_command_error(3, 0, 0, 0, 0);
 	return 0;
 }
 
+int is_available_in_mode(int command_name, int mode) {
+	int from, to;
+	assert(is_in_range(mode,1,3));
+	switch (mode) {
+	case INIT: from = 14, to = 16; break;
+	case EDIT: from = 6, to = 17; break;
+	case SOLVE: from = 1, to = 16; break;
+	}
+	if (!is_in_range(command_name, from, to)) {
+		print_invalid_command_error(4, mode, command_name, 0, 0);
+		return FALSE;
+	}
+	return TRUE;
+}
 /**
  * checks if 'line' contains only white spaces.
  *
@@ -140,12 +148,35 @@ int is_integer(char *string, int i, int length) {
 	return TRUE;
 }
 
-int update_integer(char *string, int args[], int index) {
-	if (is_integer(string, 0, strlen(string))) {
-		args[index] = atoi(string);
-		return TRUE;
+void get_valid_range(int command_name, int index, int N, int M, int range[]) {
+	int min, max;
+	switch(command_name) {
+	case Mark_errors: min = 0, max = 1; break;
+	case Generate: min = 0, max = N*M*N*M; break;
+	default:
+		min = 1, max = N*M;
+		if (command_name == Set && index == 2) {
+			min = 0;
+		}
 	}
-	return FALSE;
+	range[0] = min, range[1] = max;
+}
+
+int update_integer(int command_name, char *string, int args[], int index, int N, int M) {
+	int range[2], input;
+	get_valid_range(command_name, index, N, M, range);
+	if (!is_integer(string, 0, strlen(string))) {
+		print_invalid_command_error(6, TRUE, ++index, range[0], range[1]);
+		return FALSE;
+	}
+	input = atoi(string);
+	if (!is_in_range(input, range[0], range[1])) {
+		print_invalid_command_error(7, TRUE, ++index, range[0], range[1]);
+		return FALSE;
+	}
+	args[index] = input;
+	return TRUE;
+
 }
 
 int update_float(char* string, float* threshold) {
@@ -162,27 +193,27 @@ int update_float(char* string, float* threshold) {
 			return TRUE;
 		}
 	}
+	print_invalid_command_error(6, FALSE, 1, 0, 1);
 	return FALSE;
 }
 
-int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold) {
+int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold, int N, int M) {
 	int index = 0;
-	if (num_of_params > 1 || command_name == 1) { /*command is 'set', 'hint', 'guess_hint', 'generate' or 'mark_errors'*/
+	if (num_of_params > 1 || command_name == Mark_errors) { /*command is 'set', 'hint', 'guess_hint', 'generate' or 'mark_errors'*/
 		for (; index < num_of_params; index++) {
-			if (!update_integer(params[index], args, index)) {
+			if (!update_integer(command_name, params[index], args, index, N, M)) {
 				return index;
 			}
 		}
 	}
-	if (num_of_params == 1) {
-		switch (command_name) {
-		case 1: /*command is 'mark_errors', and args[0] was updated to be an integer successfully*/
-			return args[0] > 1 ? 0 : -1;
-		case 2: /* command is 'guess'*/
+	else if (num_of_params == 1) {
+		if (command_name == Guess) {
 			return !update_float(params[index], threshold) ? 0 : -1;
-		default: /* command is 'save', 'edit' or 'solve'*/
-			strcpy(path, params[index]);
 		}
+		strcpy(path, params[index]); /* command is 'save', 'edit' or 'solve'*/
+	}
+	else if (command_name == Edit) { /* command is 'edit' with no parameters*/
+		strcpy(path, "");
 	}
 	return -1;
 }
@@ -202,38 +233,32 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
  * 1 - if the input line can represent a valid command as described above.
  * 0 - otherwise
  */
-int get_command(char* command_line, int mode, int args[], char path[], float* threshold) {
+int get_command(char* command_line, int mode, int args[], char path[], float* threshold, int N, int M) {
 	char *string = "", *params[4];
-	int command_name, num_of_params, compare, invalid_param;
+	int command_name, num_of_params, legal_num_of_params, compare, invalid_param;
 	if (check_if_blank(command_line)==1) {
-		return 0;
+		return FALSE;
 	}
 	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
-		printf("Error: too many characters in a single line\n");/* change: print_relevant_error_message(error) */
-		return 0;
+		print_invalid_command_error(2, 0, 0, 0, 0);
+		return FALSE;
 	}
 	string = strtok(command_line, " \t\r\n");
-	command_name = get_command_name(string, mode);
-	if (command_name == 0) {
-		printf("Error: incorrect name\n");/* change: print_relevant_error_message(error) */
-		return 0;
+	command_name = get_command_name(string);
+	if (command_name == 0 || !is_available_in_mode(command_name, mode)) {
+		return FALSE;
 	}
 	num_of_params = fill_params(params, string);
-	compare = compare_num_of_params(command_name, num_of_params);
+	legal_num_of_params = get_command_num_of_params(command_name);
+	compare = compare_num_of_params(command_name, num_of_params, legal_num_of_params);
 	if (compare != 0) {
-		printf("%s", compare > 0 ? "Error: too many parameters\n" : "Error: not enough parameters\n");/* change: print_relevant_error_message(error) */
+		print_invalid_command_error(5, compare, command_name, legal_num_of_params, 0);
 		free_params(params, num_of_params);
-		return 0;
+		return FALSE;
 	}
-	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold);
-	if (invalid_param > -1) {
-		printf("Error: invalid parameter: %d\n", ++invalid_param);/* change: print_relevant_error_message(error) */
-		free_params(params, num_of_params);
-		return 0;
-	}
+	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold, N, M);
 	free_params(params, num_of_params);
-
-	return command_name;
+	return invalid_param > -1 ? FALSE : command_name;
 }
 
 
@@ -247,18 +272,18 @@ int get_command(char* command_line, int mode, int args[], char path[], float* th
  * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
-int read_command(int mode, int args[], char path[], float* threshold) {
+int read_command(int mode, int args[], char path[], float* threshold, int N, int M) {
 	int command;
 	char* command_line;
-	printf("Enter next command\n");
+	printf("Please enter your next command:\n");
 	fflush(stdout);
 	command_line = (char*)malloc(sizeof(char));
 	if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
-		printf("Error: read error occurred\n");
+		print_invalid_command_error(1, 0, 0, 0, 0);
 		free(command_line);
-		return 0;
+		return Exit;
 	}
-	command = get_command(command_line, mode, args, path, threshold);
+	command = get_command(command_line, mode, args, path, threshold, N, M);
 	free(command_line);
 	return command;
 }

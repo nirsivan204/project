@@ -27,7 +27,7 @@ BOARD* init_board(int N, int M) {
 			result->blocks[i][j] = init_block(N,M);
 		}
 	}
-	for(i=0; i<4*N*M+2*N+1;i++){
+	for(i=0; i<(3*N+2)*M+1;i++){ /*4*N*M+M+1*/
 		result->line_seperator[i] = '-';
 	}
 	result->line_seperator[i] = '\n';
@@ -156,7 +156,7 @@ int is_valid_row(BOARD *board,int row,int z) {/*checks if this row in  board con
  * 0 - otherwise
  */
 int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains z*/
-	int index_col= 0 , index_row = 0;
+	int index_col, index_row;
 	for (index_col = 0; index_col < block->N; index_col++){ /*for each column of the block*/
 		for (index_row = 0; index_row < block->M; index_row++){/*for each row of the block*/
 			if (get_element_from_block(block, index_col, index_row) == z){/*if the element in <row,column> is z */
@@ -171,8 +171,52 @@ int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains
  * this function defined in the .h file.
  */
 
-int is_valid_insertion(BOARD *board,int x,int y,int z) { /*returns if z can be set in cell <x,y> in board*/
+int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z) {
 	return is_valid_column(board,x,z) && is_valid_row(board,y,z) && is_valid_block(board->blocks[y/board->M][x/board->N],z);
+}
+
+int is_valid_insertion(BOARD *board,int x,int y,int z) { /*returns if z can be set in an empty cell <x,y> in board*/
+	int val, is_valid;
+	if (z == 0) {
+		return TRUE;
+	}
+	val = get_element_from_board(board, x, y);
+	if (val > 0) {
+		set_element_to_board(board, x, y, 0);
+		is_valid = is_valid_insertion_to_empty_cell(board,x,y,z);
+		set_element_to_board(board, x, y, val);
+		return is_valid;
+	}
+	return is_valid_insertion_to_empty_cell(board,x,y,z);
+}
+
+void update_erroneous_cells(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard) {
+	int i,j,status;
+	if (*isUpdatedBoard == FALSE) {
+		*isValidBoard = TRUE;
+		for (i=0;i<board->M*board->N;i++){
+			for (j=0;j<board->M*board->N;j++){
+				status = get_element_from_board(fixed_board,i,j);
+				if (is_valid_insertion(board, i, j, get_element_from_board(board,i,j))) {
+					if (status == ERRONEOUS) {
+						set_element_to_board(fixed_board,i,j, NORMAL);
+					}
+				}
+				else {
+					*isValidBoard = FALSE;
+					if (status == NORMAL) {
+						set_element_to_board(fixed_board,i,j, ERRONEOUS);
+					}
+				}
+			}
+		}
+		*isUpdatedBoard = TRUE;
+	}
+}
+
+int is_valid_board(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard) {
+	update_erroneous_cells(board, fixed_board, isValidBoard, isUpdatedBoard);
+	return *isValidBoard;
 }
 
 /*
@@ -200,7 +244,7 @@ void print_block(BLOCK *block){ /*printing a given block*/
  * @param fixed_block - the fixed block. the function needs it to print "." before fixed values, or " " before not-fixed values.
  * @param row         - the row (between 0 to N) needed to be printed
  */
-void print_block_row(BLOCK *block,BLOCK *fixed_block,int row,int mark_errors,int mode){ /*printing the row of block, by the printing rules in the header file*/
+void print_block_row(BLOCK *block,BLOCK *fixed_block,int row,int mark){ /*printing the row of block, by the printing rules in the header file*/
 	int i;
 	for (i=0;i<block->N;i++){/*for every col*/
 		printf(" ");
@@ -210,10 +254,10 @@ void print_block_row(BLOCK *block,BLOCK *fixed_block,int row,int mark_errors,int
 		else{
 			printf("%d",block->values[row][i]);
 		}
-		if(fixed_block->values[row][i]==1 && mode != EDIT){ /*if fixed, print "."*/
+		if(fixed_block->values[row][i]==FIXED){ /*if fixed, print "."*/
 			printf(".");
 		}else{
-			if(fixed_block->values[row][i]==2 && (mode == EDIT || mark_errors==1)){ /*if erroneous, print "*" */
+			if(fixed_block->values[row][i]==ERRONEOUS && mark == TRUE){ /*if erroneous, print "*" */
 				printf("*");
 			}else{
 				printf(" ");
@@ -226,23 +270,34 @@ void print_block_row(BLOCK *block,BLOCK *fixed_block,int row,int mark_errors,int
  * this function defined in the .h file.
  */
 
-void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode){ /*printing the board, by the printing rules in the header file*/
+void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode, int* isValidBoard, int* isUpdatedBoard){ /*printing the board, by the printing rules in the header file*/
 	int block_row = 0 ;
 	int block_col = 0 ;
 	int row = 0;
+	int mark;
+	mark = mode == EDIT || mark_errors==TRUE;
+	if (mark == TRUE) {
+		update_erroneous_cells(board, fixed_board, isValidBoard, isUpdatedBoard);
+	}
 	for (block_row = 0;block_row<board->N;block_row++){/*for each row of blocks in board*/
 		printf("%s",board->line_seperator);
 		for(row = 0;row<board->M;row++){/*for each row in a block*/
 			printf("|");
 			for (block_col = 0;block_col<board->M;block_col++){/*for each block in the row*/
-				print_block_row(board->blocks[block_row][block_col],fixed_board->blocks[block_row][block_col],row , mark_errors,mode); /*print the row*/
+				print_block_row(board->blocks[block_row][block_col],fixed_board->blocks[block_row][block_col],row , mark); /*print the row*/
 				printf(" |");
 			}
 			printf("\n");
 		}
 	}
 	printf("%s",board->line_seperator);
+}
 
+void test_print_board(BOARD *board, BOARD *fixed_board) {
+	int *isValidBoard, *isUpdatedBoard, i = 1;
+	isValidBoard = &i;
+	isUpdatedBoard = &i;
+	print_board(board, fixed_board,1,1,isValidBoard,isUpdatedBoard);
 }
 
 /*this function is copying all the cells' value of one block to another block.

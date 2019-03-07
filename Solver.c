@@ -229,13 +229,13 @@ void zero_boards(BOARD *board1, BOARD *board2, BOARD *board3){
  * this function defined in the .h file.
  */
 
-void initialize_puzzle (int fix_num, BOARD *game_board ,BOARD *fix_board, BOARD *solved_board){ /*initializing 3 boards: solved, fixed, and game. */
-	zero_boards(game_board, fix_board, solved_board); /*zero all boards*/
-	build_board(solved_board,0);/*find a random board*/
-	make_fix_board(fix_num,fix_board,solved_board);/* fix "fix_num" of places in fix_board*/
-	game_board = copy_board(fix_board); /* copy fix_board to game_board*/
-	print_board(game_board,fix_board,1,1);
-}
+//void initialize_puzzle (int fix_num, BOARD *game_board ,BOARD *fix_board, BOARD *solved_board){ /*initializing 3 boards: solved, fixed, and game. */
+//	zero_boards(game_board, fix_board, solved_board); /*zero all boards*/
+//	build_board(solved_board,0);/*find a random board*/
+//	make_fix_board(fix_num,fix_board,solved_board);/* fix "fix_num" of places in fix_board*/
+//	game_board = copy_board(fix_board); /* copy fix_board to game_board*/
+//	print_board(game_board,fix_board,1,1);
+//}
 
 int find_next_empty_cell(BOARD *board,int *x,int *y){
 	int i,j = *y;
@@ -272,7 +272,7 @@ int exhaustive_backtracking(BOARD *board){
 			continue;
 		}
 		set_element_to_board(board,x,y,digit);
-		print_board(board,board,1,1);
+		test_print_board(board,board);
 		if(find_next_empty_cell(board,&x,&y)==-1){
 			res++;
 			set_element_to_board(board,x,y,0);

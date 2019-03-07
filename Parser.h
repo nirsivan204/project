@@ -5,11 +5,10 @@
  * 						cells with values that never change throughout the game.
  * read_command - reads, interprets and checks validation of the user's inputs lines that represents commands.
  */
-#include "command_stack.h"
-#include "MainAux.h"
+#include "Errors.h"
 #define MAX_COMMAND_LENGTH 256
 #define COMMAND_NAMES {"mark_errors", "guess", "hint", "guess_hint", "autofill", "print_board", "set", "validate", "undo", "redo", \
-	"num_solutions", "reset", "exit", "save", "solve", "edit", "generate"}
+	"num_solutions", "reset", "save", "solve", "edit", "exit", "generate"}
 
 /**
  * reads the user's input line and creates an array that will contain it.
@@ -22,4 +21,4 @@
  * the first element represents the command word and the rest of the elements represents the command arguments (if there are any).
  * @param is_puzzle_solved - 1 if the sudoku game is solved completely, 0 else.
  */
-int read_command(int mode, int args[], char path[], float* threshold);
+int read_command(int mode, int args[], char path[], float* threshold, int N, int M);
