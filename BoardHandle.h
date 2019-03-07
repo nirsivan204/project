@@ -20,7 +20,7 @@
 
 //#define N 3 /*num of rows in a block*/
 //#define M 3 /*num of cols in a block*/
-typedef struct bl {/*BLOCK is a M X N matrix of ints*/
+typedef struct bl {/*BLOCK is a M X N matrix of integers*/
 	int N, M, **values;
 }BLOCK;
 
@@ -66,6 +66,8 @@ void set_element_to_board(BOARD *board, int x,int y,int z);
  */
 void zero_board(BOARD *board);
 
+int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z);
+
 /*
  * this function validate that an insertion to a cell is legal (uniqueness in row, column and block)
  * @param board - the board.
@@ -77,13 +79,19 @@ void zero_board(BOARD *board);
  */
 int is_valid_insertion(BOARD *board,int x,int y,int z);
 
+void update_erroneous_cells(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard);
+
+int is_valid_board(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard);
+
 /*
  * this function prints the board
  * @param board       - the board needed to be printed.
  * @param fixed_board - the fixed board. the function needs it to print "." before fixed values, or " " before not-fixed values.
  *
  */
-void print_board(BOARD *board, BOARD *fixed_board, int mark_errors,int mode);
+void print_board(BOARD *board, BOARD *fixed_board, int mark_errors, int mode, int* isValidBoard, int* isUpdatedBoard);
+
+void test_print_board(BOARD *board, BOARD *fixed_board);
 
 /*this function is copying all the cells' value of one board to another board.
  * @param in_board  - the board needed to be copied.

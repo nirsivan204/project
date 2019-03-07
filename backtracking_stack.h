@@ -5,7 +5,6 @@
  *      Author: nir
  */
 #include "BoardHandle.h"
-#include "assert.h"
 #ifndef BACKTRACKING_STACK_H_
 #define BACKTRACKING_STACK_H_
 
