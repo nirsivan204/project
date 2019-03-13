@@ -30,14 +30,13 @@ typedef struct bo{ /*BOARD is a N X M matrix of BLOCKs*/
 	char line_seperator[1024];/*the separator row for printing*/
 }BOARD;
 
-
-BLOCK* init_block(int N, int M);
-
-BOARD* init_board(int N, int M);
+void init_boards(BOARD* board1, BOARD* board2, int N, int M);
 
 void delete_block(BLOCK* block);
 
 void delete_board(BOARD* board);
+
+void delete_boards(BOARD* board1, BOARD* board2);
 
 /*
  * this function return a value of a cell in the board

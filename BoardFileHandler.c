@@ -72,14 +72,12 @@ int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name){
 		print_invalid_file_error(3);
 		return close_file(file, FALSE);
 	}
-//	printf("%d %d\n",N,M);
-	*board = *init_board(N,M);
-	*fix_board = *init_board(N,M);
-//	test_print_board(board,fix_board);
+	init_boards(board, fix_board, N, M);
 	(fgetc(file));
 	for(;y<M*N;y++){
 		for(x=0;x<N*M;x++){
 			if (!read_next_element(file,&z,&is_fixed,N,M)) {
+//				delete_boards(board, fix_board);
 				return close_file(file, FALSE);
 			}
 			set_element_to_board(board,x,y,z);
@@ -89,7 +87,6 @@ int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name){
 		}
 		fscanf(file,"\n");
 	}
-//	test_print_board(board,fix_board);
 	return close_file(file, TRUE);
 }
 

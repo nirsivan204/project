@@ -258,7 +258,7 @@ int exhaustive_backtracking(BOARD *board){
 			continue;
 		}
 		set_element_to_board(board,x,y,digit);
-		test_print_board(board,board);
+//		test_print_board(board,board);
 		if(find_next_empty_cell(board,&x,&y)==-1){
 			res++;
 			set_element_to_board(board,x,y,0);
