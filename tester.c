@@ -1,7 +1,7 @@
 ///*
 // * tester.c
 // *
-// *  Created on: 12 בדצמ 2018
+// *  Created on: 12 ׳‘׳“׳¦׳� 2018
 // *      Author: nir
 // */
 ////#include "MainAux.h"
@@ -14,6 +14,7 @@
 #include "SPBufferset.h"
 #include "BoardFileHandler.h"
 #include "backtracking_stack.h"
+#include "LP_handler.h"
 int current_mode = INIT;
 
 //int this_is_global;
@@ -129,10 +130,28 @@ void exhust_backtrack_tester(){
 	printf("res= %d",exhaustive_backtracking(&a));
 }
 
+void map_tester(){
+	int N = 1;
+	int M = 2;
+	BOARD *b = init_board(N,M);
+	set_element_to_board(b,1,1,1);
+	//set_element_to_board(b,0,2,2);
+	print_board(b,b,0,0,0,0);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	int n_var = map_maker(b,map,N*M,N*M*N*M);
+	print_array(map,N*N*N*M*M*M);
+	int *array = (int*)calloc(n_var,sizeof(int));
+	//row_constraint(b,map,1,2,array,N*M,N*M*N*M);
+	//col_constraint(b,map,1,2,array,N*M,N*M*N*M);
+	//cell_constraint(b,map,1,0,array,N*M,N*M*N*M);
+	block_constraint(b,map,0,0,2,array,N*M,N*M*N*M);
+	printf("%d\n",n_var);
+	print_array(array,n_var);
+}
 
 //int main(){
-//	exhust_backtrack_tester();
-//
-//	return 0;
+  //exhust_backtrack_tester();
+	//map_tester();
+	//return 0;
 //}
 

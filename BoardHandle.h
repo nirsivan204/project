@@ -66,6 +66,12 @@ void set_element_to_board(BOARD *board, int x,int y,int z);
  */
 void zero_board(BOARD *board);
 
+
+
+int is_valid_column(BOARD *board,int column,int z);
+int is_valid_row(BOARD *board,int row,int z);
+int is_valid_block(BLOCK *block,int z);
+
 int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z);
 
 /*
