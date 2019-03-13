@@ -22,5 +22,7 @@ enum Cell_Status {NORMAL, FIXED, ERRONEOUS};
 
 int is_white_space(char c);
 int is_in_range(int val,int min,int max);
+void print_array(int *arr,int length); /*helper function for debug, prints an array*/
+
 
 #endif /* MAINAUX_H_ */

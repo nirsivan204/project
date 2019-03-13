@@ -7,21 +7,7 @@
  */
 #include "Solver.h"
 
-/*
- * (for debug only)
- * this function prints an array
- * @param arr    - the array to print
- * @param length - how many cells to print
- *
- */
 
-void print_array(int *arr,int length){ /*helper function for debug, prints an array*/
-	int i;
-	for (i = 0;i<length;i++){
-		printf("%d ",arr[i]);
-	}
-	printf("\n");
-}
 
 /*
  * this function return a random number in a desired range
