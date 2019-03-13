@@ -3,9 +3,8 @@
 int validate_move(int result, int arg1, int arg2, int arg3) {
 	if (!result) {
 		print_invalid_move_error(arg1,arg2,arg3);
-		return FALSE;
 	}
-	return TRUE;
+	return result;
 }
 
 /**
@@ -46,35 +45,23 @@ void validate(BOARD *board, BOARD *solved_board) {
 	}
 }
 
+void free_all(BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list) {
+	delete_list(command_list);
+	delete_board(board);
+	delete_board(fix_board);
+	delete_board(solved_board);
+}
+
 /**
  * execute the "exit" command: free all resources, prints an exit message (and terminate the program).
  *
  */
-void exit_game(BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list) {
-//	delete_list(command_list);
-//	delete_board(board);
-//	delete_board(fix_board);
-//	delete_board(solved_board);
+int exit_game(BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list) {
+//	free_all(board, fix_board, solved_board, command_list);
 	printf("Goodbye! Thank you for playing Sudoku!\n");
+	return TERMINATE;
 }
 
-/**
- * execute the "restart" command (start a new puzzle).
- * for now does nothing, maybe in future cases we will need it.
- *
- */
-void restart_game() {
-}
-
-/*
- * checks if the puzzle is solved completely, and if so then prints a message of successful solution.
- *
- * @param board - the current puzzle.
- *
- * @return
- * 1 - if every cell of 'board' is full.
- * 0 - otherwise.
- */
 
 int find_value_in_board(BOARD *board,int x) {
 	assert(x==0||x==2);
@@ -88,6 +75,19 @@ int find_value_in_board(BOARD *board,int x) {
 	}
 	return FALSE;
 }
+
+void check_if_full(BOARD *board, int *mode, int isValidBoard) {
+	if (*mode == SOLVE && !find_value_in_board(board,0)) { /* board is full */
+		if (isValidBoard) {
+			printf("Well done! The puzzle was solved correctly! Please start a new puzzle, or exit.\n");
+			*mode = INIT;
+		}
+		else {
+			printf("The solution is erroneous! Try to use 'undo' or 'set' to correct erroneous cells.\n");
+		}
+	}
+}
+
 /*
 int puzzle_is_full_or_correct(BOARD *board,int x) {
 	assert(x==0||x==2);
@@ -126,6 +126,80 @@ void insert(BOARD *board,BOARD *fix_board, int x, int y, int z) {
 }
 */
 
+void print_start_update(int command) {
+	char *command_name;
+	switch (command) {
+	case Undo: command_name = "undo"; break;
+	case Redo: command_name = "redo"; break;
+	default: command_name = "autofill"; break;
+	}
+	printf("Board updates following '%s':\n", command_name);
+}
+
+void print_cell_update(int x, int y, int old, int new) {
+	printf("- value of cell <%d,%d> has changed from %d to %d.\n", x, y, old, new);
+}
+
+void print_finish_update(int command, char character, int count, int *isUpdatedBoard) {
+	char *command_name;
+	if (count > 0) {
+		*isUpdatedBoard = FALSE;
+	}
+	printf("Number of updated cells in this move: %d. ", count);
+	if (command != Autofill) {
+		switch (character) {
+		case 's': command_name = "set"; break;
+		case 'a': command_name = "autofill"; break;
+		case 'g': command_name = "guess"; break;
+		case 'n': command_name = "generate"; break;
+		default: printf("Board is now at its original state.\n"); return; /*character == 'o'*/
+		}
+		printf("Last move executed on board is '%s'.", command_name);
+	}
+	printf("\n");
+}
+
+int update_changes_in_board(BOARD *game_board, BOARD *list_board, int withOutput) {
+	int i, j, game_val, list_val, count;
+	for (i=0;i<game_board->M*game_board->N;i++){
+		for (j=0;j<game_board->M*game_board->N;j++) {
+			game_val = get_element_from_board(game_board, i, j);
+			list_val = get_element_from_board(list_board, i, j);
+			if (game_val != list_val) {
+				count++;
+				set_element_to_board(game_board, i, j, list_val);
+				if (withOutput) {
+					print_cell_update(i+1, j+1, game_val, list_val);
+				}
+			}
+		}
+	}
+	return count;
+}
+
+int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
+	BOARD *list_board;
+	node *node;
+	node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
+	if (!validate_move(node != NULL, 5, command, 0)) {
+		return FALSE;
+	}
+	if (command == Undo) {
+		node = move_in_command_list(list, Undo);
+	}
+	list_board = get_curr_board(list);
+	print_start_update(command);
+	print_finish_update(command,get_curr_command(node),update_changes_in_board(board,list_board,TRUE),isUpdatedBoard);
+	return TRUE;
+}
+
+void reset(list *list, BOARD *board) {
+	if (list->current_command != NULL) {
+		list->current_command = NULL;
+		update_changes_in_board(board, list->original_board, FALSE);
+	}
+}
+
 /*
  * execute the "set" command: if the given parameters represent a valid insertion (the required cell isn't "fixed" and is_valid_insertion
  * returns 1), then the function calls insert. Otherwise, it prints the relevant error-message.
@@ -142,7 +216,7 @@ void insert(BOARD *board,BOARD *fix_board, int x, int y, int z) {
  * 1 - if the current puzzle has been completed (by filling the last empty cell).
  * 0 - otherwise.
  */
-int set(BOARD *board, BOARD *fix_board, int x, int y, int z, int markErrors, int* mode, int* isValidBoard, int* isUpdatedBoard){
+int set(BOARD *board, BOARD *fix_board, int x, int y, int z, int* isValidBoard, int* isUpdatedBoard){
 	int valid = 0;
 	if(get_element_from_board(fix_board,x,y) == FIXED){
 		print_invalid_move_error(3,x+1,y+1);
@@ -153,30 +227,9 @@ int set(BOARD *board, BOARD *fix_board, int x, int y, int z, int markErrors, int
 	if (*isValidBoard == FALSE || valid == FALSE) {
 		*isUpdatedBoard = FALSE;
 	}
-	print_board(board,fix_board,markErrors,*mode,isValidBoard,isUpdatedBoard);
-	if (*mode == SOLVE && z > 0 && !find_value_in_board(board,0)) { /* board is full */
-		if (*isValidBoard == TRUE) {
-			printf("The puzzle was solved correctly!\n");
-			*mode = INIT;
-		}
-		else {
-			printf("The solution is erroneous!\n");
-		}
-	}
 	return TRUE;
 }
 
-int start_puzzle(char *path, BOARD *board, BOARD *fix_board, int *mode, int command_name){
-	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
-		*board = *init_board(3,3);
-		*fix_board = *init_board(3,3);
-	}
-	else if (!load_board(path, board, fix_board, command_name)) {
-		return FALSE;
-	}
-	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
-	return TRUE;
-}
 
 int get_only_legal_value(BOARD *board, int x, int y) {
 	int value = 0, digit = 1;
@@ -197,7 +250,7 @@ int autofill(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBo
 	if (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0)) {
 		return FALSE;
 	}
-	printf("Auto-fill updates:\n");
+	print_start_update(Autofill);
 	for (i=0;i<board->M*board->N;i++){
 		for (j=0;j<board->M*board->N;j++){
 			if (get_element_from_board(board,i,j) == 0) {
@@ -205,15 +258,12 @@ int autofill(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBo
 				if (val > 0) {
 					set_element_to_board(board, i, j, -val);
 					count++;
-					printf("- value of cell <%d,%d> is now %d.\n", i+1, j+1, val);
+					print_cell_update(i+1, j+1, 0, val);
 				}
 			}
 		}
 	}
-	if (count > 0) {
-		*isUpdatedBoard = FALSE;
-	}
-	printf("%d empty cells had a single legal value and were automatically filled.\n", count);
+	print_finish_update(Autofill, 0, count, isUpdatedBoard);
 	for (i=0;i<board->M*board->N;i++){
 		for (j=0;j<board->M*board->N;j++){
 			val = get_element_from_board(board,i,j);
@@ -221,6 +271,49 @@ int autofill(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBo
 				set_element_to_board(board, i, j, -val);
 			}
 		}
+	}
+	return TRUE;
+}
+
+int guess(BOARD *board, float threshold) {
+	return TRUE;
+}
+
+int generate(BOARD *board, int x, int y) {
+	return TRUE;
+}
+
+int execute_move(int command, BOARD *board, BOARD *fix_board, int args[], float threshold, int* isValidBoard, int* isUpdatedBoard) {
+	switch(command) {
+	case Set: return set(board, fix_board, args[0]-1, args[1]-1, args[2], isValidBoard, isUpdatedBoard);
+	case Autofill: return autofill(board, fix_board, isValidBoard, isUpdatedBoard);
+	case Guess: return guess(board, threshold);
+	default: return generate(board, args[0], args[1]); /*command is 'generate'*/
+	}
+}
+
+int num_solutions(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBoard) {
+	if (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0)) {
+		return FALSE;
+	}
+	printf("This board has %d solutions.\n",exhaustive_backtracking(board));
+	return TRUE;
+}
+
+int start_puzzle(char *path, BOARD *board, BOARD *fix_board, int *mode, int command_name, int *N, int *M, list *command_list){
+	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
+		*board = *init_board(3,3);
+		*fix_board = *init_board(3,3);
+	}
+	else if (!load_board(path, board, fix_board, command_name)) {
+		return FALSE;
+	}
+	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
+	*N = board->N;
+	*M = board->M;
+	if (command_list != NULL) {
+//		delete_list(command_list);
+		*command_list = *init_list(board);
 	}
 	return TRUE;
 }
@@ -251,75 +344,57 @@ int save(char *path, BOARD *board, BOARD *fix_board, int* isValidBoard, int* isU
  * 0 - otherwise.
  */
 int execute_command(int command, BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list, int *markErrors, \
-		int* mode, int* isValidBoard, int* isUpdatedBoard, int* isNewBoard, int args[], char path[], float* threshold) {
-	int printBoard = FALSE ,addToList = FALSE;
-	*isNewBoard = FALSE;
+		int* mode, int* isValidBoard, int* isUpdatedBoard, int* N, int *M, int args[], char path[], float threshold) {
+	int moveExecuted = FALSE;
 	switch (command) {
 	case Mark_errors:
 		*markErrors = args[0];
-		addToList = TRUE;
-		break;
-	case Guess:
-		printBoard = TRUE;
-		addToList = TRUE;
-		break;
+		return TRUE;
 	case Hint:
-		break;
+		//
+		return TRUE;
 	case Guess_hint:
-		break;
-	case Autofill:
-		if (!autofill(board, fix_board, isValidBoard, isUpdatedBoard)) {
-			return FALSE;
-		}
-		printBoard = TRUE;
-		addToList = TRUE;
-		break;
+		//
+		return TRUE;
 	case Print_board:
-		printBoard = TRUE;
-		break;
-	case Set:
-		if (!set(board, fix_board, args[0]-1, args[1]-1, args[2], *markErrors, mode, isValidBoard, isUpdatedBoard)) {
-			return FALSE;
-		}
-		addToList = TRUE;
 		break;
 	case Validate:
-		break;
-	case Undo:
-		printBoard = TRUE;
-		//if file has been changed: *isNewBoard = TRUE; //
-		break;
-	case Redo:
-		printBoard = TRUE;
-		//if file has been changed: *isNewBoard = TRUE; //
-		break;
+		//
+		return TRUE;
 	case Num_solutions:
-		break;
+		return num_solutions(board, fix_board, isValidBoard, isUpdatedBoard);
 	case Reset:
-		printBoard = TRUE;
+		reset(command_list, board);
 		break;
 	case Save:
 		return save(path, board, fix_board, isValidBoard, isUpdatedBoard, *mode);
 	case Exit:
-		exit_game(board, fix_board, solved_board, command_list);
-		return TERMINATE;
-	case Generate:
-		printBoard = TRUE;
-		addToList = TRUE;
-		break;
-	default: /* command is 'edit' or 'solve' */
-		if (!start_puzzle(path, board, fix_board, mode, command)) {
-			return FALSE;
+		return exit_game(board, fix_board, solved_board, command_list);
+	default:
+		if (command == Undo || command == Redo) {
+			if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
+				return FALSE;
+			}
 		}
-		printBoard = TRUE;
-		*isNewBoard = TRUE;
+		else if (command == Edit || command == Solve){
+			if (!start_puzzle(path, board, fix_board, mode, command, N, M, command_list)){
+				return FALSE;
+			}
+		}
+		else { /* command is either 'autofill', 'generate, 'guess' or 'set' */
+			if (!execute_move(command, board, fix_board, args, threshold, isValidBoard, isUpdatedBoard)) {
+				return FALSE;
+			}
+			moveExecuted = TRUE;
+		}
 	}
-	if (printBoard) {
-		print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
+	print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
+	if (moveExecuted) {
+		add_command(command_list, board, command);
+		check_if_full(board, mode, *isValidBoard);
 	}
-	if (addToList) {
-
-	}
+	printf("\n");
+//	print_list(command_list,1);
 	return TRUE;
 
 }

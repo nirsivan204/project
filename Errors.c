@@ -65,6 +65,10 @@ void print_invalid_file_error(int error_number) {
 	printf("\n");
 }
 
+void print_no_moves_error(int command_name) {
+	printf("No moves to %sdo.", command_name == Undo ? "un" : "re");
+}
+
 void print_invalid_move_error(int error_number, int arg1, int arg2) {
 	printf("Invalid Move Error: ");
 	switch (error_number) {
@@ -72,6 +76,7 @@ void print_invalid_move_error(int error_number, int arg1, int arg2) {
 	case 2: printf("Board is unsolvable. This command can be executed only on a solvable board."); break;
 	case 3: printf("Cell <%d,%d> is fixed. This command cannot be executed on a fixed cell.", arg1, arg2); break;
 	case 4: printf("Cell <%d,%d> already contains a value. This command can be executed only on an empty cell.", arg1, arg2); break;
+	case 5: print_no_moves_error(arg1);
 	}
 	printf("\n");
 }
