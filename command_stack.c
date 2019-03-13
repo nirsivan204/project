@@ -6,17 +6,25 @@
  */
 #include "command_stack.h"
 
-list *init_list(){
+list *init_list(BOARD *new_puzzle){
 	list *res = (list*) malloc(sizeof(list));
 	res->first = NULL;
 	res->current_command = NULL;
-	res->num_of_commands = 0;
+	res->original_board = copy_board(new_puzzle);
+//	res->num_of_commands = 0;
 	return res;
+}
+
+BOARD *get_curr_board(list* list) {
+	return list->current_command == NULL ? list->original_board : list->current_command->board_after_command;
+}
+
+char get_curr_command(node *node) {
+	return node == NULL ? 'o' : node->command;
 }
 
 void delete_nodes_recursivley(node *node){
 	if(node != NULL){
-		free(node->path);
 		delete_board(node->board_after_command);
 		delete_nodes_recursivley(node->next);
 		//free(node->next);
@@ -32,24 +40,21 @@ void delete_next_nodes(node *node){
 }
 
 void delete_list(list* s){
+	delete_board(s->original_board);
 	delete_nodes_recursivley(s->first);
 	free(s->current_command);
 	free(s);
 }
 
-void add_command(list *s,int command,int *args,char *path ,float threshold, BOARD *board_after_command){
+void add_command(list *s, BOARD *board_after_command, int command_name){
 	node *current_command = s->current_command;
 	node *element = (node*)malloc(sizeof(node));
-	element->command = command;
-	if(path!=NULL){
-		element->path = (char*)malloc(sizeof(char)*(strlen(path)+1));
-		strcpy(element->path,path);
-	}else{
-		element->path = NULL;
-	}if(args!=NULL){
-		memcpy(element->args,args,3*sizeof(int));
+	switch (command_name) {
+	case Set: element->command = 's'; break;
+	case Autofill: element->command = 'a'; break;
+	case Guess: element->command = 'g'; break;
+	default: element->command = 'n'; /* command is 'generate'*/
 	}
-	element->threshold = threshold;
 	element->prev = current_command;
 	element->board_after_command = copy_board(board_after_command);
 	if(current_command!=NULL){
@@ -60,41 +65,49 @@ void add_command(list *s,int command,int *args,char *path ,float threshold, BOAR
 	}
 	s->current_command = element;
 	element->next = NULL;
-	s->num_of_commands++;
+//	s->num_of_commands++;
 }
 
 node *pop_command(list *s){
-	node *res = s->current_command;
-	s->current_command = res->prev;
-	s->num_of_commands--;
-	return res;
+//	node *res = s->current_command;
+	s->current_command = s->current_command->prev;
+//	s->num_of_commands--;
+//	return res;
+	return s->current_command;
 }
 
 node* forward_current_command(list *s){
-	if(s == NULL){
-		printf("list wasn't initialized");
-		assert(0);
+//	if(s == NULL){
+//		printf("list wasn't initialized");
+//		assert(0);
+//	}
+//	if(s->current_command == NULL){
+//		printf("list is empty");
+//		return NULL;
+//	}
+//	if(s->current_command->next == NULL){
+//		return NULL;
+//	}
+//	s->current_command = s->current_command->next;
+//	return s->current_command;
+	s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
+	return s->current_command;
+}
+
+node* move_in_command_list(list *s, int command_name) {
+	if (command_name == Undo) {
+		s->current_command = s->current_command->prev;
 	}
-	if(s->current_command == NULL){
-		printf("list is empty");
-		return NULL;
+	else { /*command is 'redo'*/
+		s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
 	}
-	if(s->current_command->next == NULL){
-		return NULL;
-	}
-	s->current_command = s->current_command->next;
 	return s->current_command;
 }
 
 void print_node(node *node,int with_board){
-	printf("command:%d\n",node->command);
-	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
-	if(node->path ==NULL){
-		printf("path is NULL\n");
-	}else{
-		printf("%s\n",node->path);
-	}
-	printf("threshold is %f\n",node->threshold);
+//	printf("command:%d\n",node->command);
+//	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
+//	printf("threshold is %f\n",node->threshold);
 	if(with_board==1){
 		if(node->board_after_command == NULL){
 			printf("board is NULL\n");
@@ -102,12 +115,16 @@ void print_node(node *node,int with_board){
 			test_print_board(node->board_after_command,node->board_after_command);
 		}
 	}
+	printf("command: %c\n", node->command);
 	printf("|\n|\n\\/\n");
 
 }
 void print_list(list *list, int with_board){
 	node *node = list->first;
 	while (node!=NULL){
+		if (node == list->current_command) {
+			printf("current:\n");
+		}
 		print_node(node,with_board);
 		node=node->next;
 	}

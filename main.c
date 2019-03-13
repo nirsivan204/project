@@ -38,10 +38,10 @@ int main(int argc, char *argv[]){
 //	}while(command[0] == RESTART);
 
 	BOARD game_board, fix_board, solved_board;
-	int N, M, mode, markErrors, args[3], command, execute, isValidBoard, isUpdatedBoard, isNewBoard;
+	int N, M, mode, markErrors, args[3], command, execute, isValidBoard, isUpdatedBoard;
 	char path[MAX_COMMAND_LENGTH];
 	float threshold;
-	list *command_list = NULL;
+	list command_list;
 	mode = INIT, markErrors = TRUE, isValidBoard = FALSE, isUpdatedBoard = FALSE;
 	printf("Hello! Welcome to Sudoku!\n");
 	do {
@@ -49,14 +49,10 @@ int main(int argc, char *argv[]){
 		printf("result of read_command is %d. arg0 == %d, arg1 == %d, arg2 == %d, threshold == %f, path== %s\n", \
 				command, args[0], args[1], args[2], threshold, path);
 		if (command > 0) { /* command was successfully read */
-			execute = execute_command(command, &game_board, &fix_board, &solved_board, command_list, &markErrors, &mode, \
-				&isValidBoard, &isUpdatedBoard, &isNewBoard, args, path, &threshold);
-			if (isNewBoard) {
-				N = game_board.N;
-				M = game_board.M;
-			}
-			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, isNewBoard = %d, N = %d, M = %d\n", \
-					execute, markErrors, mode, isValidBoard, isUpdatedBoard, isNewBoard, N, M);
+			execute = execute_command(command, &game_board, &fix_board, &solved_board, &command_list, &markErrors, &mode, \
+				&isValidBoard, &isUpdatedBoard, &N, &M, args, path, threshold);
+			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, N = %d, M = %d\n", \
+					execute, markErrors, mode, isValidBoard, isUpdatedBoard, N, M);
 		}
 	} while (execute > -1);
 
@@ -69,5 +65,23 @@ int main(int argc, char *argv[]){
 //	set_element_to_board(&a, 0,3,0);
 //	printf("%d\n", is_valid_insertion(&a, 0,1,1));
 //	printf("%d\n", is_valid_insertion(&a, 0,1,2));
+//	BOARD a,b;
+//	list *s;
+//	s = init_list();
+//	print_list(s,1);
+//	int args[]= {1,2,3};
+//	add_command(s,1,args,0,NULL);
+//	add_command(s,2,args,0,NULL);
+//	add_command(s,5,NULL,9.6,NULL);
+//	print_list(s,1);
+//	pop_command(s);
+//	pop_command(s);
+//	add_command(s,4,args,0,NULL);
+//	print_list(s,1);
+//	pop_command(s);
+//	forward_current_command(s);
+//	print_list(s,1);
+//	add_command(s,3,args,0,NULL);
+//	print_list(s,1);
 	return 0;
 }

@@ -48,7 +48,7 @@ int pop(stack *s, int *x,int *y,int *next_digit){
 		assert(0);
 	}
 	if(s->top == NULL){
-		printf("stack is empty");
+//		printf("stack is empty");
 		return -1;
 	}
 	*x = s->top->x;

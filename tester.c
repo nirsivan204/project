@@ -81,20 +81,20 @@ void file_system_tester(){
 }
 
 void command_stack_tester(){
-	list *s;
-	s = init_list();
-	int args[]= {1,2,3};
-	add_command(s,1,args,"nir",0,NULL);
-	add_command(s,2,args,NULL,0,NULL);
-	add_command(s,5,NULL,NULL,9.6,NULL);
-	print_list(s,1);
-	pop_command(s);
-	pop_command(s);
-	print_list(s,1);
-	forward_current_command(s);
-	forward_current_command(s);
-	add_command(s,3,args,"amram",0,NULL);
-	print_list(s,1);
+//	list *s;
+//	s = init_list();
+//	int args[]= {1,2,3};
+//	add_command(s,1,args,0,NULL);
+//	add_command(s,2,args,0,NULL);
+//	add_command(s,5,NULL,9.6,NULL);
+//	print_list(s,1);
+//	pop_command(s);
+//	pop_command(s);
+//	print_list(s,1);
+//	forward_current_command(s);
+//	forward_current_command(s);
+//	add_command(s,3,args,0,NULL);
+//	print_list(s,1);
 }
 
 void backtracking_stack_tester(){

@@ -36,6 +36,10 @@ BOARD* init_board(int N, int M) {
 }
 
 void delete_block(BLOCK* block) {
+	if(block == NULL){
+		printf("block is not initialized");
+		return;
+	}
 	int i = 0;
 	for(;i<block->M;i++) {
 		free(block->values[i]);
@@ -345,5 +349,3 @@ BOARD *copy_board(BOARD *in_board){/*return a copy of in_board*/
 	}
 	return res;
 }
-
-
