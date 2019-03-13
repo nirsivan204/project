@@ -1,5 +1,11 @@
 #include "Game.h"
 
+void initialize_puzzle(BOARD *board, BOARD *fix_board, list *command_list) {
+	init_boards(board, fix_board, 0, 0);
+	*command_list = *init_list(board);
+	printf("Hello! Welcome to Sudoku!\n");
+}
+
 int validate_move(int result, int arg1, int arg2, int arg3) {
 	if (!result) {
 		print_invalid_move_error(arg1,arg2,arg3);
@@ -45,19 +51,17 @@ void validate(BOARD *board, BOARD *solved_board) {
 	}
 }
 
-void free_all(BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list) {
+void free_all(BOARD *board, BOARD *fix_board, list *command_list) {
 	delete_list(command_list);
-	delete_board(board);
-	delete_board(fix_board);
-	delete_board(solved_board);
+	delete_boards(board, fix_board);
 }
 
 /**
  * execute the "exit" command: free all resources, prints an exit message (and terminate the program).
  *
  */
-int exit_game(BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list) {
-//	free_all(board, fix_board, solved_board, command_list);
+int exit_game(BOARD *board, BOARD *fix_board, list *command_list) {
+//	free_all(board, fix_board, command_list);
 	printf("Goodbye! Thank you for playing Sudoku!\n");
 	return TERMINATE;
 }
@@ -301,20 +305,25 @@ int num_solutions(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpda
 }
 
 int start_puzzle(char *path, BOARD *board, BOARD *fix_board, int *mode, int command_name, int *N, int *M, list *command_list){
-	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
-		*board = *init_board(3,3);
-		*fix_board = *init_board(3,3);
+	BOARD copy_game, copy_fix;
+	if (strlen(path) > 0) { /* command has a parameter */
+		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
+			return FALSE;
+		}
 	}
-	else if (!load_board(path, board, fix_board, command_name)) {
-		return FALSE;
+//	free_all(board, fix_board, command_list);
+	*command_list = *init_list(board);
+	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
+		init_boards(board, fix_board, 3, 3);
+	}
+	else {
+		*board = *copy_board(&copy_game);
+		*fix_board = *copy_board(&copy_fix);
+//		delete_boards(&copy_game, &copy_fix);
 	}
 	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
 	*N = board->N;
 	*M = board->M;
-	if (command_list != NULL) {
-//		delete_list(command_list);
-		*command_list = *init_list(board);
-	}
 	return TRUE;
 }
 
@@ -343,7 +352,7 @@ int save(char *path, BOARD *board, BOARD *fix_board, int* isValidBoard, int* isU
  * 1 - if the function 'set' is called and returns 1 (if the current puzzle has been completed by filling the last empty cell).
  * 0 - otherwise.
  */
-int execute_command(int command, BOARD *board, BOARD *fix_board, BOARD *solved_board, list *command_list, int *markErrors, \
+int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, \
 		int* mode, int* isValidBoard, int* isUpdatedBoard, int* N, int *M, int args[], char path[], float threshold) {
 	int moveExecuted = FALSE;
 	switch (command) {
@@ -369,7 +378,7 @@ int execute_command(int command, BOARD *board, BOARD *fix_board, BOARD *solved_b
 	case Save:
 		return save(path, board, fix_board, isValidBoard, isUpdatedBoard, *mode);
 	case Exit:
-		return exit_game(board, fix_board, solved_board, command_list);
+		return exit_game(board, fix_board, command_list);
 	default:
 		if (command == Undo || command == Redo) {
 			if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
