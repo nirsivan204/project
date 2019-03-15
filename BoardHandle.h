@@ -29,7 +29,7 @@ typedef struct bo{ /*BOARD is a N X M matrix of BLOCKs*/
 	BLOCK*** blocks;
 	char line_seperator[1024];/*the separator row for printing*/
 }BOARD;
-
+BOARD* init_board(int N, int M);
 void init_boards(BOARD* board1, BOARD* board2, int N, int M);
 
 void delete_block(BLOCK* block);
