@@ -156,9 +156,27 @@ void map_tester(){
 	func(b,n_var,map);
 }
 
-//int main(){
+void put_sol_test(){
+	int N = 2;
+	int M = 2;
+	BOARD *b;
+	b = init_board(N,M);
+	set_element_to_board(b,1,1,1);
+	set_element_to_board(b,0,0,2);
+	set_element_to_board(b,2,1,3);
+	set_element_to_board(b,1,0,3);
+	set_element_to_board(b,0,2,1);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	map_maker(b,map,N*M,N*M*N*M);
+	double sol[] = {1,0,0,1,1,1,0,1,0,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0};
+	put_sol_in_board(b,map,sol,N*M,N*M*N*M);
+	print_board(b,b,0,0,0,0);
+}
+
+int main(){
   //exhust_backtrack_tester();
 //	map_tester();
-//	return 0;
-//}
+	put_sol_test();
+	return 0;
+}
 

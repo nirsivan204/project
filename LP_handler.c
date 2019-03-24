@@ -144,18 +144,26 @@ int block_constraint(BOARD *board,int *map,int block_row, int block_col,int digi
 	return counter;
 }
 
+void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square){
+	int i,j,k;
+	int row_offset,col_offset,map_index;
+	for(i = 0; i<nXm; i++){
+		row_offset = i*nXm_square;
+		for(j = 0; j<nXm; j++){
+			col_offset = j*nXm;
+			for(k = 1; k<=nXm; k++){
+				map_index = map[row_offset+col_offset+k-1];
+				if(map_index!=-1){
+					if(sol[map_index] == 1){
+						set_element_to_board(board,j,i,k);
+					}
+				}
 
-/* Copyright 2013, Gurobi Optimization, Inc. */
+			}
+		}
+	}
 
-/* This example formulates and solves the following simple MIP model:
-
-     maximize    x + 3 y + 2 z
-     subject to  x + 2 y + 3 z <= 5
-                 x +   y       >= 1
-     x, y, z binary
-*/
-
-
+}
 
 int func(BOARD *board,int num_of_var,int *map)
 {
