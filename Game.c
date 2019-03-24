@@ -6,9 +6,9 @@ void initialize_puzzle(BOARD *board, BOARD *fix_board, list *command_list) {
 	printf("Hello! Welcome to Sudoku!\n");
 }
 
-int validate_move(int result, int arg1, int arg2, int arg3) {
+int validate_move(int result, int error_number, int arg1, int arg2, int arg3) {
 	if (!result) {
-		print_invalid_move_error(arg1,arg2,arg3);
+		print_invalid_move_error(error_number,arg1,arg2,arg3);
 	}
 	return result;
 }
@@ -21,34 +21,34 @@ int validate_move(int result, int arg1, int arg2, int arg3) {
  * @param x - the required cells's row.
  *
  */
-void hint(BOARD *solved_board, int x, int y) {
-	printf("Hint: set cell to %d\n", get_element_from_board(solved_board, x, y));
+void hint(BOARD *solution_board, int x, int y) {
+	printf("Value of cell <%d,%d> should be %d, according to the current board.\n",x,y,get_element_from_board(solution_board,x-1,y-1));
 }
 
-int is_solvable() {
+void guess_hint() {
+}
+
+/*board is valid*/
+int get_solution(BOARD *board, int withILP) {
+	//test with n=1, m=2
+	int x11,x12,x21,x22;
+	x11 = get_element_from_board(board,0,0);
+	x12 = get_element_from_board(board,0,1);
+	x21 = get_element_from_board(board,1,0);
+	x22 = get_element_from_board(board,1,1);
+	if (x11*x22 == 2 || x12*x21 == 2) {
+		return FALSE;
+	}
+	set_element_to_board(board,0,0,1);
+	set_element_to_board(board,0,1,2);
+	set_element_to_board(board,1,0,2);
+	set_element_to_board(board,1,1,1);
+	//
 	return TRUE;
 }
 
-/**
- * execute the "validate" command: solves a copy of the game-board with the deterministic Back-tracking algorithm.
- * If a solution was found, it replaces the current solution-board. Finally, the function prints a success/failure message.
- *
- * @param board - the current puzzle.
- * @param solved_board - the current solution for the puzzle.
- *
- */
-void validate(BOARD *board, BOARD *solved_board) {
-	int is_solvable;
-	BOARD *temp_board = NULL;
-	temp_board = copy_board(board);
-	is_solvable = build_board(temp_board,1);
-	if(is_solvable == 1){
-		solved_board = copy_board(temp_board);
-		printf("Validation passed: board is solvable\n");
-	}
-	else{
-		printf("Validation failed: board is unsolvable\n");
-	}
+void print_validation_status(int isSolvable) {
+	printf(isSolvable ? "Validation passed: board is solvable.\n" : "Validation failed: board is unsolvable.\n");
 }
 
 void free_all(BOARD *board, BOARD *fix_board, list *command_list) {
@@ -67,27 +67,41 @@ int exit_game(BOARD *board, BOARD *fix_board, list *command_list) {
 }
 
 
-int find_value_in_board(BOARD *board,int x) {
-	assert(x==0||x==2);
-	int i,j;
+//int find_value_in_board(BOARD *board,int x) {
+//	assert(x==0||x==2);
+//	int i,j;
+//	for (i=0;i<board->M*board->N;i++){
+//		for (j=0;j<board->M*board->N;j++) {
+//			if (get_element_from_board(board, i, j) == x) {
+//				return TRUE;
+//			}
+//		}
+//	}
+//	return FALSE;
+//}
+
+
+int count_empty_cells(BOARD* board) {
+	int i, j, count;
 	for (i=0;i<board->M*board->N;i++){
-		for (j=0;j<board->M*board->N;j++) {
-			if (get_element_from_board(board, i, j) == x) {
-				return TRUE;
+		for (j=0;j<board->M*board->N;j++){
+			if (get_element_from_board(board,i,j) == 0) {
+				count++;
 			}
 		}
 	}
-	return FALSE;
+	return count;
 }
 
-void check_if_full(BOARD *board, int *mode, int isValidBoard) {
-	if (*mode == SOLVE && !find_value_in_board(board,0)) { /* board is full */
+void update_num_of_empty_cells(BOARD *board, int *mode, int isValidBoard, int *numOfEmptyCells) {
+	*numOfEmptyCells = count_empty_cells(board);
+	if (*mode == SOLVE && *numOfEmptyCells == 0) { /* board is full */
 		if (isValidBoard) {
 			printf("Well done! The puzzle was solved correctly! Please start a new puzzle, or exit.\n");
 			*mode = INIT;
 		}
 		else {
-			printf("The solution is erroneous! Try to use 'undo' or 'set' to correct erroneous cells.\n");
+			printf("The solution is erroneous! Try to correct erroneous cells.\n");
 		}
 	}
 }
@@ -144,11 +158,15 @@ void print_cell_update(int x, int y, int old, int new) {
 	printf("- value of cell <%d,%d> has changed from %d to %d.\n", x, y, old, new);
 }
 
-void print_finish_update(int command, char character, int count, int *isUpdatedBoard) {
-	char *command_name;
+void update_count(int count, int* isUpdatedBoard) {
 	if (count > 0) {
 		*isUpdatedBoard = FALSE;
 	}
+}
+
+void print_finish_update(int command, char character, int count, int *isUpdatedBoard) {
+	char *command_name;
+	update_count(count, isUpdatedBoard);
 	printf("Number of updated cells in this move: %d. ", count);
 	if (command != Autofill) {
 		switch (character) {
@@ -163,17 +181,17 @@ void print_finish_update(int command, char character, int count, int *isUpdatedB
 	printf("\n");
 }
 
-int update_changes_in_board(BOARD *game_board, BOARD *list_board, int withOutput) {
-	int i, j, game_val, list_val, count;
-	for (i=0;i<game_board->M*game_board->N;i++){
-		for (j=0;j<game_board->M*game_board->N;j++) {
-			game_val = get_element_from_board(game_board, i, j);
-			list_val = get_element_from_board(list_board, i, j);
-			if (game_val != list_val) {
+int update_changes_in_board(BOARD *copy_to_board, BOARD *copy_from_board, int withOutput) {
+	int i, j, copy_to_val, copy_from_val, count;
+	for (i=0;i<copy_to_board->M*copy_to_board->N;i++){
+		for (j=0;j<copy_to_board->M*copy_to_board->N;j++) {
+			copy_to_val = get_element_from_board(copy_to_board, i, j);
+			copy_from_val = get_element_from_board(copy_from_board, i, j);
+			if (copy_to_val != copy_from_val) {
 				count++;
-				set_element_to_board(game_board, i, j, list_val);
+				set_element_to_board(copy_to_board, i, j, copy_from_val);
 				if (withOutput) {
-					print_cell_update(i+1, j+1, game_val, list_val);
+					print_cell_update(i+1, j+1, copy_to_val, copy_from_val);
 				}
 			}
 		}
@@ -182,10 +200,11 @@ int update_changes_in_board(BOARD *game_board, BOARD *list_board, int withOutput
 }
 
 int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
+	int count;
 	BOARD *list_board;
 	node *node;
 	node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
-	if (!validate_move(node != NULL, 5, command, 0)) {
+	if (!validate_move(node != NULL, 5, command, 0, 0)) {
 		return FALSE;
 	}
 	if (command == Undo) {
@@ -193,14 +212,15 @@ int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
 	}
 	list_board = get_curr_board(list);
 	print_start_update(command);
-	print_finish_update(command,get_curr_command(node),update_changes_in_board(board,list_board,TRUE),isUpdatedBoard);
+	count = update_changes_in_board(board,list_board,TRUE);
+	print_finish_update(command,get_curr_command(node),count, isUpdatedBoard);
 	return TRUE;
 }
 
-void reset(list *list, BOARD *board) {
+void reset(list *list, BOARD *board, int* isUpdatedBoard) {
 	if (list->current_command != NULL) {
 		list->current_command = NULL;
-		update_changes_in_board(board, list->original_board, FALSE);
+		update_count(update_changes_in_board(board, list->original_board, FALSE), isUpdatedBoard);
 	}
 }
 
@@ -220,18 +240,11 @@ void reset(list *list, BOARD *board) {
  * 1 - if the current puzzle has been completed (by filling the last empty cell).
  * 0 - otherwise.
  */
-int set(BOARD *board, BOARD *fix_board, int x, int y, int z, int* isValidBoard, int* isUpdatedBoard){
-	int valid = 0;
-	if(get_element_from_board(fix_board,x,y) == FIXED){
-		print_invalid_move_error(3,x+1,y+1);
-		return FALSE;
-	}
-	valid = is_valid_insertion(board,x,y,z);
+void set(BOARD *board, int x, int y, int z, int* isValidBoard, int* isUpdatedBoard){
 	set_element_to_board(board,x,y,z);
-	if (*isValidBoard == FALSE || valid == FALSE) {
+	if (*isValidBoard == FALSE || !is_valid_insertion(board,x,y,z)) {
 		*isUpdatedBoard = FALSE;
 	}
-	return TRUE;
 }
 
 
@@ -249,11 +262,8 @@ int get_only_legal_value(BOARD *board, int x, int y) {
 	return value;
 }
 
-int autofill(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBoard) {
+void autofill(BOARD *board, int* isUpdatedBoard) {
 	int i, j, val, count = 0;
-	if (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0)) {
-		return FALSE;
-	}
 	print_start_update(Autofill);
 	for (i=0;i<board->M*board->N;i++){
 		for (j=0;j<board->M*board->N;j++){
@@ -276,35 +286,94 @@ int autofill(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBo
 			}
 		}
 	}
-	return TRUE;
 }
 
-int guess(BOARD *board, float threshold) {
-	return TRUE;
+void guess(BOARD *solution_board, float threshold) {
+	get_solution(solution_board, FALSE);
 }
 
-int generate(BOARD *board, int x, int y) {
-	return TRUE;
-}
-
-int execute_move(int command, BOARD *board, BOARD *fix_board, int args[], float threshold, int* isValidBoard, int* isUpdatedBoard) {
-	switch(command) {
-	case Set: return set(board, fix_board, args[0]-1, args[1]-1, args[2], isValidBoard, isUpdatedBoard);
-	case Autofill: return autofill(board, fix_board, isValidBoard, isUpdatedBoard);
-	case Guess: return guess(board, threshold);
-	default: return generate(board, args[0], args[1]); /*command is 'generate'*/
+void fill_array_with_empty_cells(BOARD* board, int empty_cells[]) {
+	int nXm, i, j, k=0;
+	nXm = board->M*board->N;
+	for (i=0;i<nXm;i++){
+		for (j=0;j<nXm;j++){
+			if (get_element_from_board(board,i,j) == 0) {
+				empty_cells[k++] = j*nXm+i;
+			}
+		}
 	}
 }
 
-int num_solutions(BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBoard) {
-	if (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0)) {
+void choose_random_empty_cells(int copy_all[], int selected_empty_cells[], int numOfEmptyCells, int x) {
+
+}
+
+void emtpy_cells(BOARD* board, int selected_empty_cells[], int limit) {
+	int index, x, y, nXm, cell_num;
+	nXm = board->N*board->M;
+	for (index=0; index<limit; index++) {
+		cell_num = selected_empty_cells[index];
+		x = cell_num%nXm;
+		y = cell_num/nXm;
+		assert(y*nXm+x == cell_num);
+		set_element_to_board(board, x, y, 0);
+	}
+}
+
+int fill_cell_with_random_legal_value(BOARD* board, int cell_num) {
+	int i, x, y, nXm, digits[board->N*board->M];
+	nXm = board->N*board->M;
+	x = cell_num%nXm;
+	y = cell_num/nXm;
+	for (i = 0; i < nXm; i++) {
+		digits[i] = i+1;
+	}
+	//choose random digit, if is_valid_insertion: set and return TRUE. else- delete digit from array and repeat.
+	return FALSE;
+}
+
+int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], int selected_empty_cells[], int x, int numOfEmptyCells) {
+	int index;
+	for (index=0; index<numOfEmptyCells; index++) {
+		copy_all[index] = all_empty_cells[index];
+	}
+	choose_random_empty_cells(copy_all, selected_empty_cells, numOfEmptyCells, x);
+	for (index=0; index<x; index++) {
+		if (!fill_cell_with_random_legal_value(board, selected_empty_cells[index])) {
+			emtpy_cells(board, selected_empty_cells, index);
+			return FALSE;
+		}
+	}
+	if (!get_solution(board, TRUE)) {
+		emtpy_cells(board, selected_empty_cells, x);
 		return FALSE;
 	}
-	printf("This board has %d solutions.\n",exhaustive_backtracking(board));
 	return TRUE;
 }
 
-int start_puzzle(char *path, BOARD *board, BOARD *fix_board, int *mode, int command_name, int *N, int *M, list *command_list){
+void empty_all_but_y_cells(BOARD* board, int y) {
+//choose (nXm - y) cells and empty them
+}
+
+int generate(BOARD *board, BOARD *solution_board, int x, int y, int numOfEmptyCells) {
+	int times, all_empty_cells[numOfEmptyCells], copy_all[numOfEmptyCells], selected_empty_cells[x];
+	update_changes_in_board(solution_board, board, FALSE);
+	fill_array_with_empty_cells(solution_board, all_empty_cells);
+	for (times=0; times<1000; times++){
+		if (fill_x_cells_and_solve(solution_board, all_empty_cells, copy_all, selected_empty_cells, x, numOfEmptyCells)) {
+			empty_all_but_y_cells(solution_board, y);
+			return TRUE;
+		}
+	}
+	printf("Error: Puzzle generation failed with this board.\n");
+	return FALSE;
+}
+
+void num_solutions(BOARD *board) {
+	printf("This board has %d solutions.\n",exhaustive_backtracking(board));
+}
+
+int start_puzzle(char *path,BOARD *board,BOARD *fix_board,int *mode,int command_name,int *nXm,list *command_list){
 	BOARD copy_game, copy_fix;
 	if (strlen(path) > 0) { /* command has a parameter */
 		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
@@ -312,31 +381,103 @@ int start_puzzle(char *path, BOARD *board, BOARD *fix_board, int *mode, int comm
 		}
 	}
 //	free_all(board, fix_board, command_list);
-	*command_list = *init_list(board);
 	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
 		init_boards(board, fix_board, 3, 3);
 	}
-	else {
+	else { /* command has a parameter, copy_game and copy_fix*/
 		*board = *copy_board(&copy_game);
 		*fix_board = *copy_board(&copy_fix);
 //		delete_boards(&copy_game, &copy_fix);
 	}
+	*command_list = *init_list(board);
 	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
-	*N = board->N;
-	*M = board->M;
+	*nXm = board->N*board->M;
 	return TRUE;
 }
 
-int save(char *path, BOARD *board, BOARD *fix_board, int* isValidBoard, int* isUpdatedBoard, int mode) {
-	if (mode == EDIT) {
-		if (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0)) {
+void execute_move(int command, BOARD *board, BOARD *solution_board, int args[], float threshold, int* isValidBoard, int* isUpdatedBoard) {
+	switch(command) {
+	case Set: set(board, args[0]-1, args[1]-1, args[2], isValidBoard, isUpdatedBoard); return;
+	case Autofill: autofill(board, isUpdatedBoard); return;
+	default:
+		if (command == Guess) {
+			*solution_board = *copy_board(board);
+			guess(solution_board, threshold);
+		} /*else- command is 'generate'*/
+		update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
+	}
+}
+
+void execute_after_validation(int command, BOARD *board, BOARD *solution_board, int* isValidBoard, int* isUpdatedBoard, \
+		int args[], float threshold, list *command_list) {
+	switch (command) {
+	case Num_solutions: num_solutions(board); return;
+	case Hint: hint(solution_board, args[0], args[1]); break;
+	case Guess_hint: guess_hint(); break;
+	default: /* command is either 'autofill', 'generate, 'guess' or 'set' */
+		execute_move(command, board, solution_board, args, threshold, isValidBoard, isUpdatedBoard);
+		add_command(command_list, board, command);
+		if (command == Set || command == Autofill) {
+			return;
+		}
+	}
+//	delete_board(solution_board);
+}
+
+int validate_solution_based_command(int command, BOARD *board, BOARD *solution_board, int args[], int numOfEmptyCells) {
+	int isSolvable;
+	if (command == Validate || command == Generate || command == Hint || command == Guess_hint) {
+		*solution_board = *copy_board(board);
+		isSolvable = get_solution(solution_board, command != Guess_hint);
+		if (command == Validate) {
+			print_validation_status(isSolvable);
+//			delete_board(solution_board);
+			return TRUE;
+		}
+		if (!validate_move(isSolvable,2,0,0,command)) {
 			return FALSE;
 		}
-		if (!validate_move(is_solvable(),2,0,0)) {
+		if (command == Generate && !generate(board, solution_board, args[0], args[1], numOfEmptyCells)) {
 			return FALSE;
 		}
 	}
-	return save_board(path, board, fix_board, mode);
+	return TRUE;
+}
+
+int validate_cell(int command, BOARD *board, BOARD *fix_board, int x, int y) {
+	if (command == Set || command == Hint || command == Guess_hint) {
+		if (!validate_move(get_element_from_board(fix_board,x,y) != FIXED, 3, x+1, y+1, 0)) {
+			return FALSE;
+		}
+		if (command != Set && !validate_move(get_element_from_board(board,x,y) == 0, 4, x+1, y+1, 0)) {
+			return FALSE;
+		}
+	}
+	return TRUE;
+}
+
+int execute_if_valid_board(int command, BOARD *board, BOARD *fix_board, int mode, int* isValidBoard, int* isUpdatedBoard, \
+		int args[], char path[], float threshold, int numOfEmptyCells, list *command_list) {
+	BOARD solution_board;
+	if (command != Save || mode == EDIT) {
+		if (command != Set && (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0,command))) {
+			return FALSE;
+		}
+		if (!validate_cell(command, board, fix_board, args[0]-1, args[1]-1)) {
+			return FALSE;
+		}
+		if (!validate_solution_based_command(command, board, &solution_board, args, numOfEmptyCells)) {
+			return FALSE;
+		}
+		if (command == Validate) {
+			return TRUE;
+		}
+	}
+	if (command == Save) {
+		 return save_board(path, board, fix_board, mode);
+	}
+	execute_after_validation(command,board,&solution_board,isValidBoard,isUpdatedBoard,args,threshold,command_list);
+	return TRUE;
 }
 
 /*
@@ -352,59 +493,86 @@ int save(char *path, BOARD *board, BOARD *fix_board, int* isValidBoard, int* isU
  * 1 - if the function 'set' is called and returns 1 (if the current puzzle has been completed by filling the last empty cell).
  * 0 - otherwise.
  */
-int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, \
-		int* mode, int* isValidBoard, int* isUpdatedBoard, int* N, int *M, int args[], char path[], float threshold) {
-	int moveExecuted = FALSE;
-	switch (command) {
-	case Mark_errors:
-		*markErrors = args[0];
-		return TRUE;
-	case Hint:
-		//
-		return TRUE;
-	case Guess_hint:
-		//
-		return TRUE;
-	case Print_board:
-		break;
-	case Validate:
-		//
-		return TRUE;
-	case Num_solutions:
-		return num_solutions(board, fix_board, isValidBoard, isUpdatedBoard);
-	case Reset:
-		reset(command_list, board);
-		break;
-	case Save:
-		return save(path, board, fix_board, isValidBoard, isUpdatedBoard, *mode);
-	case Exit:
-		return exit_game(board, fix_board, command_list);
-	default:
-		if (command == Undo || command == Redo) {
-			if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
-				return FALSE;
-			}
+int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
+		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int args[], char path[], float threshold) {
+	if (command == Undo || command == Redo) {
+		if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
+			return FALSE;
 		}
-		else if (command == Edit || command == Solve){
-			if (!start_puzzle(path, board, fix_board, mode, command, N, M, command_list)){
-				return FALSE;
-			}
+	}
+	else if (command == Edit || command == Solve){
+		if (!start_puzzle(path, board, fix_board, mode, command, nXm, command_list)){
+			return FALSE;
 		}
-		else { /* command is either 'autofill', 'generate, 'guess' or 'set' */
-			if (!execute_move(command, board, fix_board, args, threshold, isValidBoard, isUpdatedBoard)) {
+	}
+	else {
+		switch (command) {
+		case Mark_errors: *markErrors = args[0]; return TRUE;
+		case Print_board: break;
+		case Reset: reset(command_list, board, isUpdatedBoard); break;
+		case Exit: return exit_game(board, fix_board, command_list);
+		default:
+			if (!execute_if_valid_board(command,board,fix_board,*mode,isValidBoard,isUpdatedBoard,args,path,threshold,*numOfEmptyCells,command_list)) {
 				return FALSE;
 			}
-			moveExecuted = TRUE;
 		}
 	}
 	print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
-	if (moveExecuted) {
-		add_command(command_list, board, command);
-		check_if_full(board, mode, *isValidBoard);
-	}
+	update_num_of_empty_cells(board, mode, *isValidBoard, numOfEmptyCells);
 	printf("\n");
 //	print_list(command_list,1);
 	return TRUE;
+
+//	int moveExecuted = FALSE;
+//	switch (command) {
+//	case Mark_errors:
+//		*markErrors = args[0];
+//		return TRUE;
+//	case Hint:
+//		//
+//		return TRUE;
+//	case Guess_hint:
+//		//
+//		return TRUE;
+//	case Print_board:
+//		break;
+//	case Validate:
+//		return validate(board, fix_board, command, isValidBoard, isUpdatedBoard);
+//	case Num_solutions:
+//		return num_solutions(board, fix_board, isValidBoard, isUpdatedBoard);
+//	case Reset:
+//		reset(command_list, board, isUpdatedBoard);
+//		break;
+//	case Save:
+//		return save(path, board, fix_board, isValidBoard, isUpdatedBoard, *mode);
+//	case Exit:
+//		return exit_game(board, fix_board, command_list);
+//	default:
+//		if (command == Undo || command == Redo) {
+//			if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
+//				return FALSE;
+//			}
+//		}
+//		else if (command == Edit || command == Solve){
+//			if (!start_puzzle(path, board, fix_board, mode, command, nXm, command_list)){
+//				return FALSE;
+//			}
+//		}
+//		else { /* command is either 'autofill', 'generate, 'guess' or 'set' */
+//			if (!execute_move(command, board, fix_board, args, threshold, isValidBoard, isUpdatedBoard)) {
+//				return FALSE;
+//			}
+//			moveExecuted = TRUE;
+//		}
+//	}
+//	print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
+//	if (moveExecuted) {
+//		add_command(command_list, board, command);
+//	}
+//	update_num_of_empty_cells(board, mode, *isValidBoard, numOfEmptyCells);
+//	printf("\n");
+////	print_list(command_list,1);
+//	return TRUE;
 
 }
 

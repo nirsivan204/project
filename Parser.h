@@ -21,4 +21,4 @@
  * the first element represents the command word and the rest of the elements represents the command arguments (if there are any).
  * @param is_puzzle_solved - 1 if the sudoku game is solved completely, 0 else.
  */
-int read_command(int mode, int args[], char path[], float* threshold, int N, int M);
+int read_command(int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells);
