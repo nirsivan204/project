@@ -148,13 +148,13 @@ int is_integer(char *string, int i, int length) {
 	return TRUE;
 }
 
-void get_valid_range(int command_name, int index, int N, int M, int range[]) {
+void get_valid_range(int command_name, int index, int nXm, int range[]) {
 	int min, max;
 	switch(command_name) {
 	case Mark_errors: min = 0, max = 1; break;
-	case Generate: min = 0, max = N*M*N*M; break;
+	case Generate: min = 0, max = nXm*nXm; break;
 	default:
-		min = 1, max = N*M;
+		min = 1, max = nXm;
 		if (command_name == Set && index == 2) {
 			min = 0;
 		}
@@ -162,16 +162,20 @@ void get_valid_range(int command_name, int index, int N, int M, int range[]) {
 	range[0] = min, range[1] = max;
 }
 
-int update_integer(int command_name, char *string, int args[], int index, int N, int M) {
+int update_integer(int command_name, char *string, int args[], int index, int nXm, int numOfEmptyCells) {
 	int range[2], input;
-	get_valid_range(command_name, index, N, M, range);
+	get_valid_range(command_name, index, nXm, range);
 	if (!is_integer(string, 0, strlen(string))) {
-		print_invalid_command_error(6, TRUE, ++index, range[0], range[1]);
+		print_invalid_command_error(6, range[0], range[1], TRUE, ++index);
 		return FALSE;
 	}
 	input = atoi(string);
 	if (!is_in_range(input, range[0], range[1])) {
-		print_invalid_command_error(7, TRUE, ++index, range[0], range[1]);
+		print_invalid_command_error(7, range[0], range[1], TRUE, ++index);
+		return FALSE;
+	}
+	if (command_name == Generate && index == 0 && input > numOfEmptyCells) {
+		print_invalid_command_error(8, input, 0, TRUE, ++index);
 		return FALSE;
 	}
 	args[index] = input;
@@ -197,11 +201,11 @@ int update_float(char* string, float* threshold) {
 	return FALSE;
 }
 
-int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold, int N, int M) {
+int get_invalid_param(int command_name, int num_of_params, char *params[], int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
 	int index = 0;
 	if (num_of_params > 1 || command_name == Mark_errors) { /*command is 'set', 'hint', 'guess_hint', 'generate' or 'mark_errors'*/
 		for (; index < num_of_params; index++) {
-			if (!update_integer(command_name, params[index], args, index, N, M)) {
+			if (!update_integer(command_name, params[index], args, index, nXm, numOfEmptyCells)) {
 				return index;
 			}
 		}
@@ -233,7 +237,7 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
  * 1 - if the input line can represent a valid command as described above.
  * 0 - otherwise
  */
-int get_command(char* command_line, int mode, int args[], char path[], float* threshold, int N, int M) {
+int get_command(char* command_line, int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
 	char *string = "", *params[4];
 	int command_name, num_of_params, legal_num_of_params, compare, invalid_param;
 	if (check_if_blank(command_line)==1) {
@@ -256,7 +260,7 @@ int get_command(char* command_line, int mode, int args[], char path[], float* th
 		free_params(params, num_of_params);
 		return FALSE;
 	}
-	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold, N, M);
+	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold, nXm, numOfEmptyCells);
 	free_params(params, num_of_params);
 	return invalid_param > -1 ? FALSE : command_name;
 }
@@ -272,7 +276,7 @@ int get_command(char* command_line, int mode, int args[], char path[], float* th
  * the first element represents the command word and the rest of the elements represents the command parameters (if there are any).
  * @param is_game_over - 1 if the Sudoku game was solved completely. if so, only restart and exit can be called. 0 otherwise.
  */
-int read_command(int mode, int args[], char path[], float* threshold, int N, int M) {
+int read_command(int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
 	int command;
 	char* command_line;
 	printf("Please enter your next command:\n");
@@ -283,7 +287,7 @@ int read_command(int mode, int args[], char path[], float* threshold, int N, int
 		free(command_line);
 		return Exit;
 	}
-	command = get_command(command_line, mode, args, path, threshold, N, M);
+	command = get_command(command_line, mode, args, path, threshold, nXm, numOfEmptyCells);
 	free(command_line);
 	return command;
 }

@@ -35,11 +35,15 @@ void print_num_of_params_error(int compare, int command_name, int legal_num_of_p
 	printf(command_name == Edit ? "0 or 1." : "%d.", legal_num_of_params);
 }
 
-void print_invalid_parameter_error(int error_number, int isInt, int param_num, int min, int max) {
+void print_invalid_parameter_error(int error_number, int arg1, int arg2, int isInt, int param_num) {
 	char* commandOrBoard = error_number == 6 ? "is illegal for this command" : "has an illegal value for this current board state";
 	char* type = isInt ? "an integer" : "a float";
 	printf("Parameter %d %s. ", param_num, commandOrBoard);
-	printf("This parameter should be %s with minimum value of %d and maximum value of %d.", type, min, max);
+	if (error_number == 8) {
+		printf("There are less than %d empty cells.", arg1);
+		return;
+	}
+	printf("This parameter should be %s with minimum value of %d and maximum value of %d.", type, arg1, arg2);
 }
 
 void print_invalid_command_error(int error_number, int arg1, int arg2, int arg3, int arg4) {
@@ -65,15 +69,27 @@ void print_invalid_file_error(int error_number) {
 	printf("\n");
 }
 
+void print_invalid_board_error(int isErroneous, int isGenerate) {
+	printf("Board is %s. ", isErroneous ? "erroneous" : "unsolvable");
+	if (isGenerate) {
+		printf("Puzzle generation failed with this board.");
+		return;
+	}
+	printf("This command can be executed only on a %s.", isErroneous ? "valid board, make sure there are no erroneous cells" : "solvable board");
+}
+
 void print_no_moves_error(int command_name) {
 	printf("No moves to %sdo.", command_name == Undo ? "un" : "re");
 }
 
-void print_invalid_move_error(int error_number, int arg1, int arg2) {
-	printf("Invalid Move Error: ");
+void print_invalid_move_error(int error_number, int arg1, int arg2, int arg3) {
+	int isGenerate = arg3 == Generate;
+	if (!isGenerate) {
+		printf("Invalid Move Error: ");
+	}
 	switch (error_number) {
-	case 1: printf("Board is erroneous. This command can be executed only on a valid board, make sure there are no erroneous cells."); break;
-	case 2: printf("Board is unsolvable. This command can be executed only on a solvable board."); break;
+	case 1: print_invalid_board_error(TRUE, isGenerate); break;
+	case 2: print_invalid_board_error(FALSE, isGenerate); break;
 	case 3: printf("Cell <%d,%d> is fixed. This command cannot be executed on a fixed cell.", arg1, arg2); break;
 	case 4: printf("Cell <%d,%d> already contains a value. This command can be executed only on an empty cell.", arg1, arg2); break;
 	case 5: print_no_moves_error(arg1);

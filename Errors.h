@@ -15,6 +15,6 @@ void print_invalid_command_error(int error_number, int arg1, int arg2, int arg3,
 
 void print_invalid_file_error(int error_number);
 
-void print_invalid_move_error(int error_number, int arg1, int arg2);
+void print_invalid_move_error(int error_number, int arg1, int arg2, int arg3);
 
 #endif /* ERRORS_H_ */

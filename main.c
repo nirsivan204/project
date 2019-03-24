@@ -38,21 +38,21 @@ int main(int argc, char *argv[]){
 //	}while(command[0] == RESTART);
 
 	BOARD game_board, fix_board;
-	int N, M, mode, markErrors, args[3], command, execute, isValidBoard, isUpdatedBoard;
+	int nXm, mode, markErrors, args[3], command, execute, isValidBoard, isUpdatedBoard, numOfEmptyCells;
 	char path[MAX_COMMAND_LENGTH];
 	float threshold;
 	list command_list;
 	mode = INIT, markErrors = TRUE, isValidBoard = FALSE, isUpdatedBoard = FALSE;
 	initialize_puzzle(&game_board, &fix_board, &command_list);
 	do {
-		command = read_command(mode, args, path, &threshold, N, M);
+		command = read_command(mode, args, path, &threshold, nXm, numOfEmptyCells);
 		printf("result of read_command is %d. arg0 == %d, arg1 == %d, arg2 == %d, threshold == %f, path== %s\n", \
 				command, args[0], args[1], args[2], threshold, path);
 		if (command > 0) { /* command was successfully read */
 			execute = execute_command(command, &game_board, &fix_board, &command_list, &markErrors, &mode, \
-				&isValidBoard, &isUpdatedBoard, &N, &M, args, path, threshold);
-			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, N = %d, M = %d\n", \
-					execute, markErrors, mode, isValidBoard, isUpdatedBoard, N, M);
+				&isValidBoard, &isUpdatedBoard, &nXm, &numOfEmptyCells, args, path, threshold);
+			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
+					execute, markErrors, mode, isValidBoard, isUpdatedBoard, numOfEmptyCells, nXm);
 		}
 	} while (execute > -1);
 
@@ -83,5 +83,12 @@ int main(int argc, char *argv[]){
 //	print_list(s,1);
 //	add_command(s,3,args,0,NULL);
 //	print_list(s,1);
+//	int x = 3;
+//	void fun(int *x){
+//		(*x)++;
+//	}
+//	printf("%d",x);
+//	fun(&x);
+//	printf("%d",x);
 	return 0;
 }
