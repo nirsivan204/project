@@ -6,7 +6,6 @@
 // */
 ////#include "MainAux.h"
 #include "Solver.h"
-#include "Game.h"
 #include "command_stack.h"
 #include <time.h>
 #include <stdlib.h>
@@ -153,7 +152,7 @@ void map_tester(){
 	//block_constraint(b,map,0,0,2,array,N*M,N*M*N*M);
 	//printf("%d\n",n_var);
 	//print_array(array,n_var);
-	func(b,n_var,map);
+	//func(b,n_var,map);
 }
 
 void put_sol_test(){
@@ -173,10 +172,27 @@ void put_sol_test(){
 	print_board(b,b,0,0,0,0);
 }
 
+void girobi_test(){
+
+	BOARD a,b;
+
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
+	print_board(&a,&b,0,0,0,0);
+	int N = a.N;
+	int M = a.M;
+	printf("N=%d,M=%d",N,M);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	gurobi(&a,num_of_vars,map);
+}
+
 int main(){
   //exhust_backtrack_tester();
 //	map_tester();
-	put_sol_test();
+//	put_sol_test();
+
+	girobi_test();
+
 	return 0;
 }
 
