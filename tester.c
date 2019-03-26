@@ -168,7 +168,7 @@ void put_sol_test(){
 	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
 	map_maker(b,map,N*M,N*M*N*M);
 	double sol[] = {1,0,0,1,1,1,0,1,0,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0};
-	put_sol_in_board(b,map,sol,N*M,N*M*N*M);
+	put_sol_in_board(b,map,sol,N*M,N*M*N*M,0);
 	print_board(b,b,0,0,0,0);
 }
 
@@ -183,7 +183,9 @@ void girobi_test(){
 	printf("N=%d,M=%d",N,M);
 	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
 	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
-	gurobi(&a,num_of_vars,map);
+	double *sol = (double *)calloc(num_of_vars,sizeof(double));
+	//srand(time(0));
+	gurobi(&a,num_of_vars,map,0,sol);
 }
 
 int main(){

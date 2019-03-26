@@ -144,33 +144,73 @@ int block_constraint(BOARD *board,int *map,int block_row, int block_col,int digi
 	return counter;
 }
 
-void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square){
+int choose_value_by_probability(double *scores,int *values,int num_of_values){
+	int i,total_sum = 0;
+	double *partial_sum_array = (double*)calloc(num_of_values,sizeof(double));
+	double random_number = get_rand_number(RAND_MAX)/RAND_MAX;
+	print_array_double(scores,num_of_values);
+	partial_sum_array[0] = scores[0];
+	if(num_of_values > 1){
+		for(i=1;i<num_of_values;i++){
+			partial_sum_array[i] = partial_sum_array[i-1] + scores[i];
+			total_sum += scores[i];
+		}
+		for(i=0;i<num_of_values;i++){
+			if(partial_sum_array[i]/total_sum > random_number){
+				return values[i];
+			}
+		}
+	}
+	return values[0];
+}
+
+
+void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square, double threshold){
 	int i,j,k;
 	int row_offset,col_offset,map_index;
+	int num_of_legal_values = 0;
+	double *legal_scores_array = (double *)calloc(nXm,sizeof(double));
+	int *legal_values_array = (int *)calloc(nXm,sizeof(int));
 	for(i = 0; i<nXm; i++){
 		row_offset = i*nXm_square;
 		for(j = 0; j<nXm; j++){
 			col_offset = j*nXm;
 			for(k = 1; k<=nXm; k++){
 				map_index = map[row_offset+col_offset+k-1];
-				if(map_index!=-1){
-					if(sol[map_index] == 1){
-						set_element_to_board(board,j,i,k);
+				if(map_index>-1){
+					printf("i=%d j=%d k=%d score = %f\n",i,j,k,sol[map_index]);
+					if(sol[map_index] >= threshold){
+						if(i==0&&j==4){
+							printf("k = %d,is valid =  %d\n",k,is_valid_insertion_to_empty_cell(board,j,i,k));
+						}
+						if(is_valid_insertion_to_empty_cell(board,j,i,k)){
+							//printf("im here");
+							legal_scores_array[num_of_legal_values] = sol[map_index];
+							legal_values_array[num_of_legal_values] = k;
+							num_of_legal_values++;
+						}
 					}
 				}
-
 			}
+			if(num_of_legal_values > 0){
+				printf("num_of_legal_values = %d\n",num_of_legal_values);
+				int val = choose_value_by_probability(legal_scores_array,legal_values_array,num_of_legal_values);
+				printf("val = %d\n",val);
+				set_element_to_board(board,j,i,val);
+			}
+			num_of_legal_values = 0;
 		}
 	}
-
+	free(legal_scores_array);
+	free(legal_values_array);
 }
 
-int gurobi(BOARD *board,int num_of_var,int *map)
+int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 {
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
   int       error = 0;
-  double    *sol = (double*)malloc(num_of_var*sizeof(double));
+  //double    *sol = (double*)malloc(num_of_var*sizeof(double));
   int       *ind = (int*)malloc(board->N*board->M*sizeof(int));
   double    *val = (double*)malloc(num_of_var*sizeof(double));
   double    *obj = (double*)malloc(num_of_var*sizeof(double));
@@ -203,22 +243,30 @@ int gurobi(BOARD *board,int num_of_var,int *map)
 
 //  /* Add variables */
 //
-  printf("nir3");
 //
-//  /* coefficients - for Xijk */
-  for(i=0;i<num_of_var;i++){
-	  obj[i] = 1;
-	  val[i] = 1; //for binary!!!!!!
-  }
 
   /* variable types - for xijk */
   /* other options: GRB_INTEGER, GRB_CONTINUOUS */
   for(i=0;i<num_of_var;i++){
-  	  vtype[i] = GRB_BINARY;
+  	  if(is_binary){
+  		  vtype[i] = GRB_BINARY;
+  		  obj[i] = 1;
+  		  printf("herh");
+  	  }
+  	  else{
+  		  //int r = get_rand_number(nXm)+1;
+  		  //printf("r=%d",r);
+  		  //printf("nir");
+  		  obj[i] = get_rand_number(nXm)+1;
+  		  vtype[i] = GRB_CONTINUOUS;
+  	  }
+  	  val[i] = 1;
   }
+  //obj[2] = 20;
+  print_array_double(obj,num_of_var);
 
 //  /* add variables to model */
-  error = GRBaddvars(model, num_of_var, 0, NULL, NULL, NULL, obj, NULL, NULL, vtype, NULL);
+  error = GRBaddvars(model, num_of_var, 0, NULL, NULL, NULL, obj, NULL, val, vtype, NULL); // val is also upper bound of 1
   if (error) {
 	  printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
 	  return -1;
@@ -239,40 +287,42 @@ int gurobi(BOARD *board,int num_of_var,int *map)
 	  return -1;
   }
 
-  printf("nir4");
-
   for (k=1;k<=nXm;k++){
 	  for(i=0;i<nXm;i++){
 		  constraint_len = row_constraint(board,map,i,k,ind,nXm,nXm_square);
-		  //print_array(ind,constraint_len);
-		  error = GRBaddconstr(model, constraint_len , ind, val, GRB_LESS_EQUAL, 1, NULL);
-		  if (error) {
-			  printf("ERROR %d GRBaddconstr() for row %d, digit %d: %s\n", error,i,k,GRBgeterrormsg(env));
-		  	  return -1;
+		  if(constraint_len>0){
+			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+			  if (error) {
+				  printf("ERROR %d GRBaddconstr() for row %d, digit %d: %s\n", error,i,k,GRBgeterrormsg(env));
+				  return -1;
+			  }
 		  }
+		  //print_array(ind,constraint_len);
 	  }
 	  for(j=0;j<nXm;j++){
 		  constraint_len = col_constraint(board,map,j,k,ind,nXm,nXm_square);
 		  //print_array(ind,constraint_len);
-
-		  error = GRBaddconstr(model, constraint_len , ind, val, GRB_LESS_EQUAL, 1, NULL);
-		  if (error) {
-			  printf("ERROR %d GRBaddconstr() for col %d, digit %d: %s\n", error,j,k,GRBgeterrormsg(env));
-		  	  return -1;
+		  if(constraint_len>0){
+			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+			  if (error) {
+				  printf("ERROR %d GRBaddconstr() for col %d, digit %d: %s\n", error,j,k,GRBgeterrormsg(env));
+				  return -1;
+			  }
 		  }
+
 	  }
 
   }
   for(i=0;i<nXm;i++){
 	  for(j=0;j<nXm;j++){
 		  constraint_len = cell_constraint(board,map,i,j,ind,nXm,nXm_square);
-		  //print_array(ind,constraint_len);
-
-  		  error = GRBaddconstr(model, constraint_len , ind, val, GRB_LESS_EQUAL, 1, NULL);
-  		  if (error) {
-  			  printf("ERROR %d GRBaddconstr() for cell (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
-  		  	  return -1;
-  		  }
+		  if(constraint_len>0){
+			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+			  if (error) {
+				  printf("ERROR %d GRBaddconstr() for cell (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
+				  return -1;
+			  }
+		  }
   	  }
   }
   for(i=0;i<board->N;i++){
@@ -280,10 +330,12 @@ int gurobi(BOARD *board,int num_of_var,int *map)
 		  for(k=1;k<=nXm;k++){
 			  constraint_len = block_constraint(board,map,i,j,k,ind,nXm,nXm_square);
 			  //print_array(ind,constraint_len);
-			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_LESS_EQUAL, 1, NULL);
-			  if (error) {
-				  printf("ERROR %d GRBaddconstr() for block (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
-				  return -1;
+			  if(constraint_len>0){
+				  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+				  if (error) {
+					  printf("ERROR %d GRBaddconstr() for block (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
+					  return -1;
+				  }
 			  }
 		  }
 	  }
@@ -331,7 +383,8 @@ int gurobi(BOARD *board,int num_of_var,int *map)
 /*   solution found*/
   if (optimstatus == GRB_OPTIMAL) {
     printf("Optimal objective: %.4e\n", objval);
-    put_sol_in_board(board,map,sol,nXm,nXm_square);
+    print_array_double(sol,num_of_var);
+    put_sol_in_board(board,map,sol,nXm,nXm_square,0);
     print_board(board,board,0,0,0,0);
   }
 /*   no solution found*/

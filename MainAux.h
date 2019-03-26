@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #ifndef MAINAUX_H_
 #define MAINAUX_H_
@@ -25,5 +26,5 @@ int is_white_space(char c);
 int is_in_range(int val,int min,int max);
 void print_array(int *arr,int length); /*helper function for debug, prints an array*/
 void print_array_double(double *arr,int length);
-
+int get_rand_number(int range);
 #endif /* MAINAUX_H_ */

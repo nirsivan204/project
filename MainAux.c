@@ -36,3 +36,14 @@ void print_array(int *arr,int length){ /*helper function for debug, prints an ar
 	}
 	printf("\n");
 }
+
+
+/*
+ * this function return a random number in a desired range
+ * @param range    - the range
+ *
+ * @return a random number between 0 to range-1 (include)
+ */
+int get_rand_number(int range){ /*returning a random number between 0 to range-1*/
+	return rand()%range;
+}
