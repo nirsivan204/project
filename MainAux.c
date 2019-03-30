@@ -21,6 +21,13 @@ int is_in_range(int val,int min,int max){
  * @param length - how many cells to print
  *
  */
+void print_array_double(double *arr,int length){
+	int i;
+	for (i = 0;i<length;i++){
+			printf("%f ",arr[i]);
+	}
+	printf("\n");
+}
 
 void print_array(int *arr,int length){ /*helper function for debug, prints an array*/
 	int i;
@@ -28,4 +35,15 @@ void print_array(int *arr,int length){ /*helper function for debug, prints an ar
 		printf("%d ",arr[i]);
 	}
 	printf("\n");
+}
+
+
+/*
+ * this function return a random number in a desired range
+ * @param range    - the range
+ *
+ * @return a random number between 0 to range-1 (include)
+ */
+int get_rand_number(int range){ /*returning a random number between 0 to range-1*/
+	return rand()%range;
 }

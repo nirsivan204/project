@@ -10,16 +10,6 @@
 
 
 /*
- * this function return a random number in a desired range
- * @param range    - the range
- *
- * @return a random number between 0 to range-1 (include)
- */
-int get_rand_number(int range){ /*returning a random number between 0 to range-1*/
-	return rand()%range;
-}
-
-/*
  * this function deletes chosen number from the array of possible digits, and updating the array
  * ***for now, it is doing it naively because we decided
  *    that it is fast enough for small arrays and relatively small boards.

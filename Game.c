@@ -29,7 +29,7 @@ void hint(BOARD *solution_board, int x, int y) {
 void guess_hint() {
 }
 
-int guess_helper(BOARD *board, int nXm, int is_hint){
+/*int guess_helper(BOARD *board, int nXm, int is_hint){
 
 	if(is_hint){
 
@@ -39,11 +39,12 @@ int guess_helper(BOARD *board, int nXm, int is_hint){
 	}
 
 
-}
+}*/
 
 
 /*board is valid*/
-int get_solution(BOARD *board, int is_binary, int nXm) {
+int get_solution(BOARD *board, int is_binary) {
+	int nXm = 1;
 	int nXm_square =nXm*nXm ;
 	int *map= (int*)calloc(nXm*nXm_square, sizeof(int));
 	int num_of_vars = map_maker(board, map, nXm, nXm_square);

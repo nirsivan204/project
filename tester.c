@@ -6,7 +6,6 @@
 // */
 ////#include "MainAux.h"
 #include "Solver.h"
-#include "Game.h"
 #include "command_stack.h"
 #include <time.h>
 #include <stdlib.h>
@@ -153,12 +152,81 @@ void map_tester(){
 	//block_constraint(b,map,0,0,2,array,N*M,N*M*N*M);
 	//printf("%d\n",n_var);
 	//print_array(array,n_var);
-	func(b,n_var,map);
+	//func(b,n_var,map);
 }
+
+void put_sol_test(){
+	int N = 2;
+	int M = 2;
+	BOARD *b;
+	b = init_board(N,M);
+	set_element_to_board(b,1,1,1);
+	set_element_to_board(b,0,0,2);
+	set_element_to_board(b,2,1,3);
+	set_element_to_board(b,1,0,3);
+	set_element_to_board(b,0,2,1);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	map_maker(b,map,N*M,N*M*N*M);
+	double sol[] = {1,0,0,1,1,1,0,1,0,0,1,0,1,0,1,0,0,1,0,1,0,1,0,0,0};
+	put_sol_in_board(b,map,sol,N*M,N*M*N*M,0);
+	print_board(b,b,0,0,0,0);
+}
+
+void girobi_test(){
+
+	BOARD a,b;
+
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
+	print_board(&a,&b,0,0,0,0);
+	int N = a.N;
+	int M = a.M;
+	printf("N=%d,M=%d",N,M);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	double *sol = (double *)calloc(num_of_vars,sizeof(double));
+	//srand(time(0));
+	gurobi(&a,num_of_vars,map,0,sol);
+    put_sol_in_board(&a,map,sol,N*M,N*N*M*M,0);
+    print_board(&a,&a,0,0,0,0);
+    free(map);
+    free(sol);
+    //delete_board(&a);
+}
+
+void get_hint_test(){
+
+	BOARD a,b;
+
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
+	print_board(&a,&b,0,0,0,0);
+	int N = a.N;
+	int M = a.M;
+	printf("N=%d,M=%d",N,M);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	double *sol = (double *)calloc(num_of_vars,sizeof(double));
+	//srand(time(0));
+	gurobi(&a,num_of_vars,map,0,sol);
+	double *scores = (double *)calloc(N*M,sizeof(double));
+    get_hint(map,sol,0,0,N*M,N*N*M*M,scores);
+    print_board(&a,&a,0,0,0,0);
+    print_array_double(scores,N*M);
+    free(map);
+    free(sol);
+    free(scores);
+    //delete_board(&a);
+}
+
+
 
 //int main(){
   //exhust_backtrack_tester();
 //	map_tester();
-//	return 0;
+//	put_sol_test();
+
+	//girobi_test();
+//	get_hint_test();
+
+	//return 0;
 //}
 
