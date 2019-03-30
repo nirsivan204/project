@@ -219,14 +219,14 @@ void get_hint_test(){
 
 
 
-int main(){
+//int main(){
   //exhust_backtrack_tester();
 //	map_tester();
 //	put_sol_test();
 
 	//girobi_test();
-	get_hint_test();
+//	get_hint_test();
 
-	return 0;
-}
+	//return 0;
+//}
 
