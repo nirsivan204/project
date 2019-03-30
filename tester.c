@@ -186,14 +186,46 @@ void girobi_test(){
 	double *sol = (double *)calloc(num_of_vars,sizeof(double));
 	//srand(time(0));
 	gurobi(&a,num_of_vars,map,0,sol);
+    put_sol_in_board(&a,map,sol,N*M,N*N*M*M,0);
+    print_board(&a,&a,0,0,0,0);
+    free(map);
+    free(sol);
+    //delete_board(&a);
 }
+
+void get_hint_test(){
+
+	BOARD a,b;
+
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
+	print_board(&a,&b,0,0,0,0);
+	int N = a.N;
+	int M = a.M;
+	printf("N=%d,M=%d",N,M);
+	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
+	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	double *sol = (double *)calloc(num_of_vars,sizeof(double));
+	//srand(time(0));
+	gurobi(&a,num_of_vars,map,0,sol);
+	double *scores = (double *)calloc(N*M,sizeof(double));
+    get_hint(map,sol,0,0,N*M,N*N*M*M,scores);
+    print_board(&a,&a,0,0,0,0);
+    print_array_double(scores,N*M);
+    free(map);
+    free(sol);
+    free(scores);
+    //delete_board(&a);
+}
+
+
 
 int main(){
   //exhust_backtrack_tester();
 //	map_tester();
 //	put_sol_test();
 
-	girobi_test();
+	//girobi_test();
+	get_hint_test();
 
 	return 0;
 }

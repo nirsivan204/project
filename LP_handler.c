@@ -157,10 +157,12 @@ int choose_value_by_probability(double *scores,int *values,int num_of_values){
 		}
 		for(i=0;i<num_of_values;i++){
 			if(partial_sum_array[i]/total_sum > random_number){
+				free(partial_sum_array);
 				return values[i];
 			}
 		}
 	}
+	free(partial_sum_array);
 	return values[0];
 }
 
@@ -168,6 +170,7 @@ int choose_value_by_probability(double *scores,int *values,int num_of_values){
 void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square, double threshold){
 	int i,j,k;
 	int row_offset,col_offset,map_index;
+	int val = 0;
 	int num_of_legal_values = 0;
 	double *legal_scores_array = (double *)calloc(nXm,sizeof(double));
 	int *legal_values_array = (int *)calloc(nXm,sizeof(int));
@@ -194,7 +197,7 @@ void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square
 			}
 			if(num_of_legal_values > 0){
 				printf("num_of_legal_values = %d\n",num_of_legal_values);
-				int val = choose_value_by_probability(legal_scores_array,legal_values_array,num_of_legal_values);
+				val = choose_value_by_probability(legal_scores_array,legal_values_array,num_of_legal_values);
 				printf("val = %d\n",val);
 				set_element_to_board(board,j,i,val);
 			}
@@ -203,6 +206,20 @@ void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square
 	}
 	free(legal_scores_array);
 	free(legal_values_array);
+}
+
+void get_hint(int *map,double *sol, int x,int y,int nXm,int nXm_square,double *scores){
+	int offset = x*nXm_square + y*nXm;
+	int map_index;
+	int k;
+	for (k=0;k<nXm;k++){
+		map_index = map[offset+k];
+		if(map_index == -1){
+			scores[k] = 0;
+		}else{
+			scores[k] = sol[map_index];
+		}
+	}
 }
 
 int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
@@ -250,22 +267,16 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   for(i=0;i<num_of_var;i++){
   	  if(is_binary){
   		  vtype[i] = GRB_BINARY;
-  		  obj[i] = 1;
-  		  printf("herh");
   	  }
   	  else{
-  		  //int r = get_rand_number(nXm)+1;
-  		  //printf("r=%d",r);
-  		  //printf("nir");
   		  obj[i] = get_rand_number(nXm)+1;
   		  vtype[i] = GRB_CONTINUOUS;
   	  }
   	  val[i] = 1;
   }
-  //obj[2] = 20;
   print_array_double(obj,num_of_var);
 
-//  /* add variables to model */
+  /* add variables to model */
   error = GRBaddvars(model, num_of_var, 0, NULL, NULL, NULL, obj, NULL, val, vtype, NULL); // val is also upper bound of 1
   if (error) {
 	  printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
@@ -383,9 +394,6 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 /*   solution found*/
   if (optimstatus == GRB_OPTIMAL) {
     printf("Optimal objective: %.4e\n", objval);
-    print_array_double(sol,num_of_var);
-    put_sol_in_board(board,map,sol,nXm,nXm_square,0);
-    print_board(board,board,0,0,0,0);
   }
 /*   no solution found*/
   else if (optimstatus == GRB_INF_OR_UNBD) {
@@ -399,6 +407,10 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 /*   IMPORTANT !!! - Free model and environment*/
   GRBfreemodel(model);
   GRBfreeenv(env);
+  free(ind);
+  free(obj);
+  free(vtype);
+  free(val);
   return 0;
 }
 
