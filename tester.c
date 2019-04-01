@@ -217,16 +217,30 @@ void get_hint_test(){
     //delete_board(&a);
 }
 
+void validate_test(){
+	BOARD a,b;
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
+	print_board(&a,&b,0,0,0,0);
+	int N = a.N;
+	int M = a.M;
+	int NXM = N*M;
+	int var = 0;
+	int mode = 3;
+	printf("N=%d,M=%d",N,M);
+	execute_command(Validate,&a,&b,NULL,FALSE,&mode,&var,&var,&NXM,&var,NULL,NULL,0);
 
 
-//int main(){
+}
+
+
+int main(){
   //exhust_backtrack_tester();
 //	map_tester();
 //	put_sol_test();
 
 	//girobi_test();
 //	get_hint_test();
-
-	//return 0;
-//}
+	validate_test();
+	return 0;
+}
 

@@ -5,6 +5,7 @@
  *      Author: nir
  */
 #include "BoardHandle.h"
+
 #ifndef BACKTRACKING_STACK_H_
 #define BACKTRACKING_STACK_H_
 
@@ -25,4 +26,5 @@ void delete_stack(stack *s);
 void push(stack *s ,int x, int y);
 int pop(stack *s , int *x,int *y, int *next_digit);
 void print_stack(stack *s);
+int exhaustive_backtracking(BOARD *board);
 #endif /* BACKTRACKING_STACK_H_ */
