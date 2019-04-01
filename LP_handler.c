@@ -167,11 +167,12 @@ int choose_value_by_probability(double *scores,int *values,int num_of_values){
 }
 
 
-void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square, double threshold){
+int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square, double threshold){
 	int i,j,k;
 	int row_offset,col_offset,map_index;
 	int val = 0;
 	int num_of_legal_values = 0;
+	int res = TRUE;
 	double *legal_scores_array = (double *)calloc(nXm,sizeof(double));
 	int *legal_values_array = (int *)calloc(nXm,sizeof(int));
 	for(i = 0; i<nXm; i++){
@@ -200,12 +201,15 @@ void put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square
 				val = choose_value_by_probability(legal_scores_array,legal_values_array,num_of_legal_values);
 				printf("val = %d\n",val);
 				set_element_to_board(board,j,i,val);
+			}else{
+				res = FALSE;
 			}
 			num_of_legal_values = 0;
 		}
 	}
 	free(legal_scores_array);
 	free(legal_values_array);
+	return res;
 }
 
 void get_hint(int *map,double *sol, int x,int y,int nXm,int nXm_square,double *scores){

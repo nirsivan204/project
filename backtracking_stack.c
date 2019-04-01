@@ -86,3 +86,48 @@ void print_stack(stack *s){
 	printf("---------------\n");
 }
 
+int find_next_empty_cell(BOARD *board,int *x,int *y){
+	int i,j = *y;
+	for (i=0;i<board->N*board->M;i++){
+		for (j=0;j<board->N*board->M;j++){
+			if(get_element_from_board(board,j,i)==0){
+				*x = j;
+				*y = i;
+				return 1;
+			}
+		}
+	}
+	return -1;
+}
+
+int exhaustive_backtracking(BOARD *board){
+	stack *s = init_stack(board->M*board->N);
+	int x=0,y=0,digit,res=0;
+	int pop_res;
+	if(find_next_empty_cell(board,&x,&y)==-1){
+		return 1;
+	}
+	push(s,x,y);
+	while(s->top!=NULL){
+		pop_res = pop(s,&x,&y,&digit);
+		while(pop_res==1){
+			set_element_to_board(board,x,y,0);
+			pop_res = pop(s,&x,&y,&digit);
+		}
+		if(pop_res == -1){
+			break;
+		}
+		if(!is_valid_insertion(board,x,y,digit)){
+			continue;
+		}
+		set_element_to_board(board,x,y,digit);
+//		test_print_board(board,board);
+		if(find_next_empty_cell(board,&x,&y)==-1){
+			res++;
+			set_element_to_board(board,x,y,0);
+		}else{
+			push(s,x,y);
+		}
+	}
+	return res;
+}

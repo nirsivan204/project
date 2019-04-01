@@ -1,5 +1,5 @@
 CC = gcc
-OBJS = tester.o Game.o Solver.o BoardFileHandler.o BoardHandle.o Parser.o Errors.o MainAux.o LP_handler.o command_stack.o backtracking_stack.o
+OBJS = tester.o Game.o BoardFileHandler.o BoardHandle.o Parser.o Errors.o MainAux.o LP_handler.o command_stack.o backtracking_stack.o
 EXEC = protest
 COMP_FLAG = -ansi -Wall -Wextra -Werror -pedantic-errors
 GUROBI_COMP = -I/usr/local/lib/gurobi563/include
@@ -9,9 +9,7 @@ $(EXEC): $(OBJS)
 	$(CC) $(OBJS) $(GUROBI_LIB) -o $@ -lm
 tester.o: tester.c Game.h Parser.h SPBufferset.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
-Game.o: Game.c Game.h Solver.h BoardFileHandler.h command_stack.h
-	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
-Solver.o: Solver.c Solver.h backtracking_stack.h LP_handler.h
+Game.o: Game.c Game.h Solver.h BoardFileHandler.h command_stack.h LP_handler.h backtracking_stack.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 BoardFileHandler.o: BoardFileHandler.c BoardFileHandler.h Errors.h BoardHandle.h 
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c

@@ -26,75 +26,6 @@ void hint(BOARD *solution_board, int x, int y) {
 	printf("According to current board's solution, value of cell <%d,%d> should be %d.\n",x,y,get_element_from_board(solution_board,x-1,y-1));
 }
 
-void guess_hint() {
-}
-
-/*int guess_helper(BOARD *board, int nXm, int is_hint){
-
-	if(is_hint){
-
-	}
-	else{
-
-	}
-
-
-}*/
-
-
-/*board is valid*/
-int get_solution(BOARD *board, int is_binary) {
-	int nXm = 1;
-	int nXm_square =nXm*nXm ;
-	int *map= (int*)calloc(nXm*nXm_square, sizeof(int));
-	int num_of_vars = map_maker(board, map, nXm, nXm_square);
-	double *sol = (double*)calloc(num_of_vars, sizeof(double));
-	int result = gurobi(board, num_of_vars, map, is_binary, sol);
-	if (result != 0) {
-		printf("error");
-		return FALSE;
-	}
-
-
-
-	//test with n=1, m=2
-//	int x11,x12,x21,x22;
-//	x11 = get_element_from_board(board,0,0);
-//	x12 = get_element_from_board(board,0,1);
-//	x21 = get_element_from_board(board,1,0);
-//	x22 = get_element_from_board(board,1,1);
-//	if (x11*x22 == 2 || x12*x21 == 2) {
-//		return FALSE;
-//	}
-//	set_element_to_board(board,0,0,1);
-//	set_element_to_board(board,0,1,2);
-//	set_element_to_board(board,1,0,2);
-//	set_element_to_board(board,1,1,1);
-	//
-	//test with n=2, m=2
-	int x00, x13, x22, x23, x32, x33;
-	x00 = get_element_from_board(board,0,0);
-	x13 = get_element_from_board(board,1,3);
-	x22 = get_element_from_board(board,2,2);
-	x23 = get_element_from_board(board,2,3);
-	x32 = get_element_from_board(board,3,2);
-	x33 = get_element_from_board(board,3,3);
-	if ((x00 > 0 && x00 != 1) || \
-			(x13 > 0 && x13 != 3) || \
-			(x22 > 0 && x22 != 4) || \
-			(x23 > 0 && x23 != 2) || \
-			(x32 > 0 && x32 != 3) || \
-			(x33 > 0 && x33 != 1)) {
-		return FALSE;
-	}
-	set_element_to_board(board,0,0,1);
-	set_element_to_board(board,1,3,3);
-	set_element_to_board(board,2,2,4);
-	set_element_to_board(board,2,3,2);
-	set_element_to_board(board,3,2,3);
-	set_element_to_board(board,3,3,1);
-	return TRUE;
-}
 
 void print_validation_status(int isSolvable) {
 	printf(isSolvable ? "Validation passed: board is solvable.\n" : "Validation failed: board is unsolvable.\n");
@@ -337,9 +268,6 @@ void autofill(BOARD *board, int* isUpdatedBoard) {
 	}
 }
 
-void guess(BOARD *solution_board, float threshold) {
-	get_solution(solution_board, FALSE);
-}
 
 int get_random_number(int range){ /*returning a random number between 0 to range-1*/
 	return rand()%range;
@@ -399,6 +327,11 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
 
 int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], int selected_empty_cells[], int digits[], int x, int numOfEmptyCells) {
 	int index;
+	int res;
+	int nXm = board->N*board->M;
+	int nXm_square =nXm*nXm;
+	int *map,num_of_vars;
+	double *sol;
 	for (index=0; index<numOfEmptyCells; index++) {
 		copy_all[index] = all_empty_cells[index];
 	}
@@ -409,7 +342,15 @@ int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], 
 			return FALSE;
 		}
 	}
-	if (!get_solution(board, TRUE)) {
+	map= (int*)calloc(nXm*nXm_square, sizeof(int));
+	num_of_vars = map_maker(board, map, nXm, nXm_square);
+	sol = (double*)calloc(num_of_vars, sizeof(double));
+	res = gurobi(board, num_of_vars, map, TRUE, sol);
+	if(res == -1){
+		printf("error in girobi fill x in cells");
+		return FALSE;
+	}
+	if (res==FALSE) {
 		emtpy_cells(board, selected_empty_cells, x);
 		return FALSE;
 	}
@@ -458,6 +399,7 @@ void num_solutions(BOARD *board) {
 
 int start_puzzle(char *path,BOARD *board,BOARD *fix_board,int *mode,int command_name,int *nXm,list *command_list){
 	BOARD copy_game, copy_fix;
+	printf("%s",path);
 	if (strlen(path) > 0) { /* command has a parameter */
 		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
 			return FALSE;
@@ -482,11 +424,7 @@ void execute_move(int command, BOARD *board, BOARD *solution_board, int args[], 
 	switch(command) {
 	case Set: set(board, args[0]-1, args[1]-1, args[2], isValidBoard, isUpdatedBoard); return;
 	case Autofill: autofill(board, isUpdatedBoard); return;
-	default:
-		if (command == Guess) {
-			*solution_board = *copy_board(board);
-			guess(solution_board, threshold);
-		} /*else- command is 'generate'*/
+	default: /* command is 'generate' or 'guess'*/
 		update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
 	}
 }
@@ -496,7 +434,7 @@ void execute_after_validation(int command, BOARD *board, BOARD *solution_board, 
 	switch (command) {
 	case Num_solutions: num_solutions(board); return;
 	case Hint: hint(solution_board, args[0], args[1]); break;
-	case Guess_hint: guess_hint(); break;
+	case Guess_hint: break;
 	default: /* command is either 'autofill', 'generate, 'guess' or 'set' */
 		execute_move(command, board, solution_board, args, threshold, isValidBoard, isUpdatedBoard);
 		add_command(command_list, board, command);
@@ -507,24 +445,71 @@ void execute_after_validation(int command, BOARD *board, BOARD *solution_board, 
 //	delete_board(solution_board);
 }
 
-int validate_solution_based_command(int command, BOARD *board, BOARD *solution_board, int args[], int numOfEmptyCells, int nXm) {
-	int isSolvable;
-	if (command == Validate || command == Generate || command == Hint || command == Guess_hint) {
-		*solution_board = *copy_board(board);
-		isSolvable = get_solution(solution_board, command != Guess_hint);
-		if (command == Validate) {
-			print_validation_status(isSolvable);
-//			delete_board(solution_board);
-			return TRUE;
-		}
-		if (!validate_move(isSolvable,2,0,0,command)) {
-			return FALSE;
-		}
-		if (command == Generate && !generate(board, solution_board, args[0], args[1], numOfEmptyCells, nXm)) {
-			return FALSE;
+void print_scores(int x, int y, int nXm, double *scores) {
+	int i;
+	printf("Legal values of cell <%d,%d>:\n", x+1, y+1);
+	for (i = 1; i<=nXm; i++) {
+		if (scores[i-1] > 0) {
+			printf("%d with score of: %f\n",i, scores[i-1]);
 		}
 	}
-	return TRUE;
+}
+
+int validate_solution_based_command(int command, BOARD *board, BOARD *solution_board, int args[], float threshold, int numOfEmptyCells, int nXm) {
+	int res,is_full;
+	double *scores;
+	int x = args[0]-1;
+	int y = args[1]-1;
+	int *map,result,num_of_vars;
+	double *sol;
+	int nXm_square =nXm*nXm ;
+	*solution_board = *copy_board(board);
+	map= (int*)calloc(nXm*nXm_square, sizeof(int));
+	num_of_vars = map_maker(board, map, nXm, nXm_square);
+	sol = (double*)calloc(num_of_vars, sizeof(double));
+	res = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
+	if (res != -1) {
+		if (command == Validate) {
+			print_validation_status(res);
+//			delete_board(solution_board);
+			free(sol);
+			free(map);
+			return TRUE;
+		}
+		if(res==0){
+			printf("not feasible");
+			return FALSE;
+		}
+		is_full = put_sol_in_board(solution_board,map,sol,nXm,nXm_square,threshold);
+		if (command == Guess) {
+				free(sol);
+				free(map);
+				return TRUE;
+		}
+		if (!validate_move(is_full,2,0,0,command)) {
+				free(sol);
+				free(map);
+				return FALSE;
+		}
+		if (command == Guess_hint) {
+			scores = (double*)calloc(nXm, sizeof(double));
+			get_hint(map,sol,x,y,nXm,nXm_square,scores);
+			print_scores(x, y, nXm, scores);
+			free(scores);
+			free(sol);
+			free(map);
+		}
+		if (command == Generate && !generate(board, solution_board, args[0], args[1], numOfEmptyCells, nXm)) {
+					free(sol);
+					free(map);
+					return FALSE;
+		}
+		return TRUE;
+	}else{
+
+		printf("error in girobi");
+		return FALSE;
+	}
 }
 
 int validate_cell(int command, BOARD *board, BOARD *fix_board, int x, int y) {
@@ -542,6 +527,7 @@ int validate_cell(int command, BOARD *board, BOARD *fix_board, int x, int y) {
 int execute_if_valid_board(int command, BOARD *board, BOARD *fix_board, int mode, int* isValidBoard, int* isUpdatedBoard, \
 		int args[], char path[], float threshold, int numOfEmptyCells, int nXm, list *command_list) {
 	BOARD solution_board;
+	assert(FALSE);
 	if (command != Save || mode == EDIT) {
 		if (command != Set && (!validate_move(is_valid_board(board, fix_board, isValidBoard, isUpdatedBoard),1,0,0,command))) {
 			return FALSE;
@@ -549,8 +535,11 @@ int execute_if_valid_board(int command, BOARD *board, BOARD *fix_board, int mode
 		if (!validate_cell(command, board, fix_board, args[0]-1, args[1]-1)) {
 			return FALSE;
 		}
-		if (!validate_solution_based_command(command, board, &solution_board, args, numOfEmptyCells, nXm)) {
-			return FALSE;
+		assert(FALSE);
+		if (command == Validate || command == Generate || command == Hint || command == Guess_hint || command == Guess) {
+			if (!validate_solution_based_command(command, board, &solution_board, args, threshold, numOfEmptyCells, nXm)) {
+				return FALSE;
+			}
 		}
 		if (command == Validate) {
 			return TRUE;
@@ -577,7 +566,7 @@ int execute_if_valid_board(int command, BOARD *board, BOARD *fix_board, int mode
  * 0 - otherwise.
  */
 int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
-		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int args[], char path[], float threshold) {
+		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int *args, char *path, float threshold) {
 	if (command == Undo || command == Redo) {
 		if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
 			return FALSE;
@@ -595,6 +584,7 @@ int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_l
 		case Reset: reset(command_list, board, isUpdatedBoard); break;
 		case Exit: return exit_game(board, fix_board, command_list);
 		default:
+			//return FALSE;
 			if (!execute_if_valid_board(command,board,fix_board,*mode,isValidBoard,isUpdatedBoard,args,path,threshold,*numOfEmptyCells,*nXm,command_list)) {
 				return FALSE;
 			}
