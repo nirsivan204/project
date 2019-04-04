@@ -219,6 +219,7 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
 	else if (command_name == Edit) { /* command is 'edit' with no parameters*/
 		strcpy(path, "");
 	}
+	*threshold = 0; /*for Gurobi purposes: if command isn't 'guess', we will use 0 as threshold*/
 	return -1;
 }
 

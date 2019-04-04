@@ -66,7 +66,7 @@ int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name){
 	file = fopen(path, "r");
 	if(file == NULL){
 		print_invalid_file_error(1);
-		return close_file(file, FALSE);
+		return FALSE;
 	}
 	if(fscanf(file,"%d %d",&N,&M)<0){
 		print_invalid_file_error(3);
@@ -96,7 +96,7 @@ int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
 	file = fopen(path, "w");
 	if(file == NULL){
 		print_invalid_file_error(2);
-		return close_file(file, FALSE);
+		return FALSE;
 	}
 	fprintf(file,"%d %d\n",board->N,board->M);
 	for (;i<board->M*board->N;i++){

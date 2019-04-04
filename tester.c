@@ -6,6 +6,8 @@
 // */
 ////#include "MainAux.h"
 #include "Solver.h"
+#include "Game.h"
+#include "Parser.h"
 #include "command_stack.h"
 #include <time.h>
 #include <stdlib.h>
@@ -217,30 +219,43 @@ void get_hint_test(){
     //delete_board(&a);
 }
 
-void validate_test(){
-	BOARD a,b;
-	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
-	print_board(&a,&b,0,0,0,0);
-	int N = a.N;
-	int M = a.M;
-	int NXM = N*M;
-	int var = 0;
-	int mode = 3;
-	printf("N=%d,M=%d",N,M);
-	execute_command(Validate,&a,&b,NULL,FALSE,&mode,&var,&var,&NXM,&var,NULL,NULL,0);
-
-
+void test_command(int command_number, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
+		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int *args, char *path, float threshold){
+	char *commands[] = COMMAND_NAMES;
+	printf("\ncommand: %s\n\n", commands[command_number-1]);
+	int execute = execute_command(command_number, board, fix_board, command_list, markErrors, mode, \
+					isValidBoard, isUpdatedBoard, nXm, numOfEmptyCells, args, path, threshold);
+	printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
+						execute, *markErrors, *mode, *isValidBoard, *isUpdatedBoard, *numOfEmptyCells, *nXm);
 }
 
 
 int main(){
+	int i, num_of_commands, commands[] = {Solve, Set, Autofill, Reset, Autofill};
+	BOARD game_board, fix_board;
+	int nXm, mode, markErrors, args[3], execute, isValidBoard, isUpdatedBoard, numOfEmptyCells;
+	float threshold;
+	list command_list;
+	char *path = "/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt";
+	threshold = 0;
+	mode = INIT, markErrors = TRUE, isValidBoard = FALSE, isUpdatedBoard = FALSE, numOfEmptyCells = 0;
+
+	initialize_puzzle(&game_board, &fix_board, &command_list);
+	nXm = game_board.N*game_board.M;
+	args[0] = 1;
+	args[1] = 1;
+	args[2] = 1;
   //exhust_backtrack_tester();
 //	map_tester();
 //	put_sol_test();
 
 	//girobi_test();
 //	get_hint_test();
-	validate_test();
+	num_of_commands = 5;
+	for (i=0; i<num_of_commands; i++) {
+		test_command(commands[i], &game_board, &fix_board, &command_list, &markErrors, &mode, \
+				&isValidBoard, &isUpdatedBoard, &nXm, &numOfEmptyCells, args, path, threshold);
+	}
 	return 0;
 }
 
