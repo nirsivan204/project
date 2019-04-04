@@ -219,6 +219,7 @@ void get_hint_test(){
     //delete_board(&a);
 }
 
+
 void test_command(int command_number, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
 		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int *args, char *path, float threshold){
 	char *commands[] = COMMAND_NAMES;
@@ -229,7 +230,6 @@ void test_command(int command_number, BOARD *board, BOARD *fix_board, list *comm
 						execute, *markErrors, *mode, *isValidBoard, *isUpdatedBoard, *numOfEmptyCells, *nXm);
 }
 
-
 int main(){
 	int i, num_of_commands, commands[] = {Solve, Set, Autofill, Reset, Autofill};
 	BOARD game_board, fix_board;
@@ -239,6 +239,7 @@ int main(){
 	char *path = "/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt";
 	threshold = 0;
 	mode = INIT, markErrors = TRUE, isValidBoard = FALSE, isUpdatedBoard = FALSE, numOfEmptyCells = 0;
+
 
 	initialize_puzzle(&game_board, &fix_board, &command_list);
 	nXm = game_board.N*game_board.M;

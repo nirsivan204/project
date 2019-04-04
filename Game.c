@@ -421,6 +421,7 @@ void num_solutions(BOARD *board) {
 
 int start_puzzle(char *path,BOARD *board,BOARD *fix_board,int *mode,int command_name,int *nXm,list *command_list){
 	BOARD copy_game, copy_fix;
+	printf("%s",path);
 	if (strlen(path) > 0) { /* command has a parameter */
 		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
 			return FALSE;
@@ -501,7 +502,13 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 					update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
 				}
 			}
+
 		}
+		return TRUE;
+	}else{
+
+		printf("error in girobi");
+		return FALSE;
 	}
 //	delete_board(solution_board);
 	free(sol);
