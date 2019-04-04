@@ -4,7 +4,8 @@
 void print_system_error(int error_number) {
 	printf("System Error: ");
 	switch (error_number) {
-
+	case 1: printf("Problem with memory allocation."); break;
+	case 2: printf("Problem in Gurobi."); break;
 	}
 	printf("\n");
 }
