@@ -289,6 +289,9 @@ void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode, int*
 	int block_col = 0 ;
 	int row = 0;
 	int mark;
+	if(board == NULL){
+		return;
+	}
 	mark = mode == EDIT || mark_errors==TRUE;
 	if (mark == TRUE) {
 		update_erroneous_cells(board, fixed_board, isValidBoard, isUpdatedBoard);

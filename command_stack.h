@@ -32,9 +32,9 @@ char get_curr_command(node *node);
 void delete_list(list* s);
 void add_command(list *s, BOARD *board_after_command, int command_name);
 //
-node* pop_command(list *s);
+//node* pop_command(list *s);
 void print_list(list *s,int with_board);
-node* forward_current_command(list *s);
+//node* forward_current_command(list *s);
 //
 node* move_in_command_list(list *s, int command_name);
 #endif /* COMMAND_STACK_H_ */
