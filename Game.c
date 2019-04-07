@@ -504,11 +504,6 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 			}
 
 		}
-		return TRUE;
-	}else{
-
-		printf("error in girobi");
-		return FALSE;
 	}
 //	delete_board(solution_board);
 	free(sol);

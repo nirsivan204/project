@@ -220,17 +220,7 @@ void get_hint_test(){
 }
 
 
-void test_command(int command_number, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
-		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int *args, char *path, float threshold){
-	char *commands[] = COMMAND_NAMES;
-	printf("\ncommand: %s\n\n", commands[command_number-1]);
-	int execute = execute_command(command_number, board, fix_board, command_list, markErrors, mode, \
-					isValidBoard, isUpdatedBoard, nXm, numOfEmptyCells, args, path, threshold);
-	printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
-						execute, *markErrors, *mode, *isValidBoard, *isUpdatedBoard, *numOfEmptyCells, *nXm);
-}
-
-int main(){
+void test_command(){
 	int i, num_of_commands, commands[] = {Solve, Set, Autofill, Reset, Autofill};
 	BOARD game_board, fix_board;
 	int nXm, mode, markErrors, args[3], execute, isValidBoard, isUpdatedBoard, numOfEmptyCells;
@@ -254,9 +244,49 @@ int main(){
 //	get_hint_test();
 	num_of_commands = 5;
 	for (i=0; i<num_of_commands; i++) {
-		test_command(commands[i], &game_board, &fix_board, &command_list, &markErrors, &mode, \
-				&isValidBoard, &isUpdatedBoard, &nXm, &numOfEmptyCells, args, path, threshold);
+		char *commands[] = COMMAND_NAMES;
+			printf("\ncommand: %s\n\n", commands[i]);
+			int execute = execute_command(i, &game_board, &fix_board, &command_list, &markErrors, &mode, \
+							&isValidBoard, &isUpdatedBoard, &nXm, &numOfEmptyCells, args, path, threshold);
+			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
+								execute, markErrors, mode, isValidBoard, isUpdatedBoard, numOfEmptyCells, nXm);
 	}
+}
+
+void build_and_delete_board_test(){
+	BOARD *board = init_board(5,5);
+	set_element_to_board(board,1,1,6);
+	set_element_to_board(board,1,5,9);
+	set_element_to_board(board,1,5,0);
+	set_element_to_board(board,1,3,8);
+	set_element_to_board(board,2,10,12);
+
+
+	print_board(board,board,0,0,0,0);
+	delete_board(board);
+
+}
+
+void undo_and_redo_memory_test(){
+	BOARD *b = init_board(2,3);
+	set_element_to_board(b,1,1,1);
+	list *list  = init_list(b);
+	add_command(list,b,1);
+	//add_command(list,b,2);
+	//pop_command(list);
+	//add_command(list,b,3);
+	//add_command(list,b,4);
+	delete_list(list);
+	delete_board(b);
+
+
+}
+
+
+
+int main(){
+	//build_and_delete_board_test();
+	undo_and_redo_memory_test();
 	return 0;
 }
 

@@ -29,7 +29,9 @@ void delete_nodes_recursivley(node *node){
 		delete_nodes_recursivley(node->next);
 		//free(node->next);
 		free(node);
+		printf("n");
 	}
+	printf("nir");
 }
 
 void delete_next_nodes(node *node){
@@ -42,7 +44,9 @@ void delete_next_nodes(node *node){
 void delete_list(list* s){
 	delete_board(s->original_board);
 	delete_nodes_recursivley(s->first);
-	free(s->current_command);
+	if(s->current_command != NULL){
+		free(s->current_command);
+	}
 	free(s);
 }
 
@@ -67,7 +71,7 @@ void add_command(list *s, BOARD *board_after_command, int command_name){
 	element->next = NULL;
 //	s->num_of_commands++;
 }
-
+/*
 node *pop_command(list *s){
 //	node *res = s->current_command;
 	s->current_command = s->current_command->prev;
@@ -92,7 +96,7 @@ node* forward_current_command(list *s){
 //	return s->current_command;
 	s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
 	return s->current_command;
-}
+}*/
 
 node* move_in_command_list(list *s, int command_name) {
 	if (command_name == Undo) {
