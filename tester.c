@@ -271,11 +271,17 @@ void undo_and_redo_memory_test(){
 	BOARD *b = init_board(2,3);
 	set_element_to_board(b,1,1,1);
 	list *list  = init_list(b);
-	add_command(list,b,1);
-	//add_command(list,b,2);
+	add_command(list,b,2);
+	//add_command(list,b,7);
 	//pop_command(list);
-	//add_command(list,b,3);
-	//add_command(list,b,4);
+	//add_command(list,b,2);
+	print_list(list,0);
+	move_in_command_list(list,Undo);
+	move_in_command_list(list,Undo);
+	move_in_command_list(list,Undo);
+	print_list(list,0);
+	add_command(list,b,5);
+	print_list(list,0);
 	delete_list(list);
 	delete_board(b);
 

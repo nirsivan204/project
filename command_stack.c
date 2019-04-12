@@ -11,7 +11,6 @@ list *init_list(BOARD *new_puzzle){
 	res->first = NULL;
 	res->current_command = NULL;
 	res->original_board = copy_board(new_puzzle);
-//	res->num_of_commands = 0;
 	return res;
 }
 
@@ -27,11 +26,9 @@ void delete_nodes_recursivley(node *node){
 	if(node != NULL){
 		delete_board(node->board_after_command);
 		delete_nodes_recursivley(node->next);
-		//free(node->next);
 		free(node);
-		printf("n");
+		return;
 	}
-	printf("nir");
 }
 
 void delete_next_nodes(node *node){
@@ -44,9 +41,6 @@ void delete_next_nodes(node *node){
 void delete_list(list* s){
 	delete_board(s->original_board);
 	delete_nodes_recursivley(s->first);
-	if(s->current_command != NULL){
-		free(s->current_command);
-	}
 	free(s);
 }
 
@@ -65,11 +59,11 @@ void add_command(list *s, BOARD *board_after_command, int command_name){
 		delete_next_nodes(current_command);
 		current_command->next = element;
 	}else{
+		delete_nodes_recursivley(s->first);
 		s->first = element;
 	}
 	s->current_command = element;
 	element->next = NULL;
-//	s->num_of_commands++;
 }
 /*
 node *pop_command(list *s){
@@ -100,10 +94,19 @@ node* forward_current_command(list *s){
 
 node* move_in_command_list(list *s, int command_name) {
 	if (command_name == Undo) {
-		s->current_command = s->current_command->prev;
+		if(s->current_command!=NULL){
+			s->current_command = s->current_command->prev;
+		}else{
+			printf("can't undo, board in initial state\n");
+		}
 	}
 	else { /*command is 'redo'*/
-		s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
+		if(s->current_command->next != NULL){
+			s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
+		}
+		else{
+			printf("can't redo, no next commands\n");
+		}
 	}
 	return s->current_command;
 }
@@ -128,6 +131,10 @@ void print_list(list *list, int with_board){
 	while (node!=NULL){
 		if (node == list->current_command) {
 			printf("current:\n");
+		}else{
+			if(list->current_command==NULL){
+				printf("current state is the initial board\n");
+			}
 		}
 		print_node(node,with_board);
 		node=node->next;
