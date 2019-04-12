@@ -126,7 +126,7 @@ void backtracking_stack_tester(){
 
 void exhust_backtrack_tester(){
 	BOARD a,b;
-	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b,3);
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test.txt",&a,&b,3);
 	test_print_board(&a,&b);
 	printf("res= %d",exhaustive_backtracking(&a));
 }
@@ -288,11 +288,49 @@ void undo_and_redo_memory_test(){
 
 }
 
+void backtracking_memory_test(){
+	stack *s = init_stack(1);
+	push(s,5,3);
+	push(s,5,2);
+	int x;
+	int y;
+	int k;
+	print_stack(s);
+	pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+	print_stack(s);
 
+	pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+	print_stack(s);
+
+	pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+	print_stack(s);
+
+	pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+
+	print_stack(s);
+    pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+	print_stack(s);
+
+    pop(s,&x,&y,&k);
+	printf("x=%d,y=%d,k=%d",x,y,k);
+	print_stack(s);
+
+	delete_stack(s);
+
+	BOARD *b = init_board(2,3);
+	printf("res = %d",exhaustive_backtracking(b));
+	delete_board(b);
+}
 
 int main(){
 	//build_and_delete_board_test();
-	undo_and_redo_memory_test();
+	//undo_and_redo_memory_test();
+	//backtracking_memory_test();
 	return 0;
 }
 
