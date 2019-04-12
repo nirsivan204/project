@@ -230,7 +230,7 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 {
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
-  int       error = 0;
+  int       error = 0,res;
   //double    *sol = (double*)malloc(num_of_var*sizeof(double));
   int       *ind = (int*)malloc(board->N*board->M*sizeof(int));
   double    *val = (double*)malloc(num_of_var*sizeof(double));
@@ -397,15 +397,18 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 
 /*   solution found*/
   if (optimstatus == GRB_OPTIMAL) {
-    printf("Optimal objective: %.4e\n", objval);
+	  printf("Optimal objective: %.4e\n", objval);
+	  res = 1;
   }
 /*   no solution found*/
   else if (optimstatus == GRB_INF_OR_UNBD) {
-    printf("Model is infeasible or unbounded\n");
+	  printf("Model is infeasible or unbounded\n");
+	  res = 0;
   }
 /*   error or calculation stopped*/
   else {
-    printf("Optimization was stopped early\n");
+	  printf("Optimization was stopped early\n");
+	  res = -1;
   }
 
 /*   IMPORTANT !!! - Free model and environment*/
@@ -415,7 +418,7 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   free(obj);
   free(vtype);
   free(val);
-  return 0;
+  return res;
 }
 
 

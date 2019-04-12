@@ -19,7 +19,6 @@ void delete_stack(stack *s){
 	}
 	stack_element *element = s->top;
 	while(element!=NULL){
-		//delete_board(element->board);
 		stack_element *temp = element->next;
 		free(element);
 		element = temp;
@@ -29,7 +28,6 @@ void delete_stack(stack *s){
 
 void push(stack *s,int x, int y){
 	stack_element *element =(stack_element*) malloc(sizeof(stack_element));
-	//element->board = copy_board(board);
 	element->x = x;
 	element->y = y;
 	element->next_digit = 0;
@@ -38,22 +36,20 @@ void push(stack *s,int x, int y){
 }
 
 void delete_stack_element(stack_element *element){
-	//delete_board(element->board);
 	free(element);
 }
 
 int pop(stack *s, int *x,int *y,int *next_digit){
 	if(s == NULL){
-		printf("stack is not initialized");
+		printf("stack is not initialized\n");
 		assert(0);
 	}
 	if(s->top == NULL){
-//		printf("stack is empty");
+		printf("stack is empty\n");
 		return -1;
 	}
 	*x = s->top->x;
 	*y = s->top->y;
-	//*board = s->top->board;
 	s->top->next_digit++;
 	if(s->top->next_digit<=s->digits_range){
 		*next_digit = s->top->next_digit;
@@ -121,7 +117,6 @@ int exhaustive_backtracking(BOARD *board){
 			continue;
 		}
 		set_element_to_board(board,x,y,digit);
-//		test_print_board(board,board);
 		if(find_next_empty_cell(board,&x,&y)==-1){
 			res++;
 			set_element_to_board(board,x,y,0);
@@ -129,5 +124,6 @@ int exhaustive_backtracking(BOARD *board){
 			push(s,x,y);
 		}
 	}
+	delete_stack(s);
 	return res;
 }
