@@ -55,7 +55,7 @@ void delete_block(BLOCK* block) {
 
 void delete_board(BOARD* board) {
 	if(board == NULL){
-		printf("board is NULL");
+		printf("board is NULL\n");
 		return;
 	}
 	int i = 0;

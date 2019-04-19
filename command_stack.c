@@ -39,7 +39,9 @@ void delete_next_nodes(node *node){
 }
 
 void delete_list(list* s){
+	printf("nir\n");
 	if(s != NULL){
+		printf("nir not empty\n");
 		delete_board(s->original_board);
 		delete_nodes_recursivley(s->first);
 		free(s);
@@ -132,6 +134,10 @@ void print_node(node *node,int with_board){
 
 }
 void print_list(list *list, int with_board){
+	if(list==NULL){
+		printf("list is NULL\n");  //remove
+		return;
+	}
 	node *node = list->first;
 	while (node!=NULL){
 		if (node == list->current_command) {

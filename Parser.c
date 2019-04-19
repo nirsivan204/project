@@ -117,18 +117,18 @@ int check_if_blank(char *line){
 	return 1;
 }
 
-void free_params(char *params[], int num) {
-	unsigned int i;
+void free_params(char **params, int num) {
+	int i;
 	for(i=0;i<num;i++){
 		free(params[i]);
 	}
 }
 
-int fill_params(char *params[], char *string) {
+int fill_params(char **params, char *string) {
 	int num = 0;
 	string = strtok(NULL, " \t\r\n");
 	while(string && num < 4) {
-		params[num] = (char*) malloc((int)strlen(string) * sizeof(char));
+		params[num] = (char*) malloc((strlen(string)+1) * sizeof(char));
 		strcpy(params[num], string);
 		num++;
 		string = strtok(NULL, " \t\r\n");
@@ -239,18 +239,21 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
  * 0 - otherwise
  */
 int get_command(char* command_line, int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
-	char *string = "", *params[4];
+	char *string = "", **params = (char**)calloc(4,sizeof(char *));
 	int command_name, num_of_params, legal_num_of_params, compare, invalid_param;
 	if (check_if_blank(command_line)==1) {
+		free(params);
 		return FALSE;
 	}
 	if (strlen(command_line) > MAX_COMMAND_LENGTH) {
 		print_invalid_command_error(2, 0, 0, 0, 0);
+		free(params);
 		return FALSE;
 	}
 	string = strtok(command_line, " \t\r\n");
 	command_name = get_command_name(string);
 	if (command_name == 0 || !is_available_in_mode(command_name, mode)) {
+		free(params);
 		return FALSE;
 	}
 	num_of_params = fill_params(params, string);
@@ -259,10 +262,12 @@ int get_command(char* command_line, int mode, int args[], char path[], float* th
 	if (compare != 0) {
 		print_invalid_command_error(5, compare, command_name, legal_num_of_params, 0);
 		free_params(params, num_of_params);
+		free(params);
 		return FALSE;
 	}
 	invalid_param = get_invalid_param(command_name, num_of_params, params, args, path, threshold, nXm, numOfEmptyCells);
 	free_params(params, num_of_params);
+	free(params);
 	return invalid_param > -1 ? FALSE : command_name;
 }
 
@@ -279,10 +284,10 @@ int get_command(char* command_line, int mode, int args[], char path[], float* th
  */
 int read_command(int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
 	int command;
-	char* command_line;
+	char* command_line = NULL;
 	printf("Please enter your next command:\n");
 	fflush(stdout);
-	command_line = (char*)malloc(sizeof(char));
+	command_line = (char*)malloc((MAX_COMMAND_LENGTH+2)*sizeof(char));
 	if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
 		print_invalid_command_error(1, 0, 0, 0, 0);
 		free(command_line);

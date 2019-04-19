@@ -330,7 +330,7 @@ void backtracking_memory_test(){
 save_and_load_memory_test(){
 	BOARD *b=NULL,*c=NULL;
 	int a=0;
-	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&b,&c,Solve);
+	load_board("boards/test2.txt",&b,&c,Solve);
 	//print_board(b,c,0,0,&a,&a);
 	//set_element_to_board(b,0,2,8);
 	//save_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/nir.txt",b,c,Solve);

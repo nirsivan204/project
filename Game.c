@@ -420,7 +420,6 @@ void num_solutions(BOARD *board) {
 
 int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int command_name,int *nXm,list **command_list){
 	BOARD *copy_game = NULL, *copy_fix = NULL;
-	printf("%s",path);
 	if (strlen(path) > 0) { /* command has a parameter */
 		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
 			delete_board(copy_game);
@@ -428,8 +427,12 @@ int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int comman
 			return FALSE;
 		}
 	}
+	if(*command_list==NULL){
+		printf("nnn");
+	}
 	delete_list(*command_list);
-	delete_boards(*board,*fix_board);
+	delete_board(*board);
+	delete_board(*fix_board);
 //	free_all(board, fix_board, command_list);
 	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
 		init_boards(board, fix_board, 3, 3);
@@ -439,6 +442,7 @@ int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int comman
 		*fix_board = copy_board(copy_fix);
 	}
 	*command_list = init_list(*board);
+	//print_list(command_list,FALSE);
 	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
 	*nXm = (*board)->N*(*board)->M;
 	delete_board(copy_game);
@@ -622,16 +626,16 @@ int execute_if_valid_board(int command, BOARD *board, BOARD *fix_board, int mode
  * 1 - if the function 'set' is called and returns 1 (if the current puzzle has been completed by filling the last empty cell).
  * 0 - otherwise.
  */
-int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_list, int *markErrors, int* mode, \
+int execute_command(int command, BOARD **board, BOARD **fix_board, list **command_list, int *markErrors, int* mode, \
 		int* isValidBoard, int* isUpdatedBoard, int* nXm, int* numOfEmptyCells, int *args, char *path, float threshold) {
 	int result = TRUE;
 	if (command == Undo || command == Redo) {
-		if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
+		if (!undo_or_redo(*command_list, *board, command, isUpdatedBoard)) {
 			return FALSE;
 		}
 	}
 	else if (command == Edit || command == Solve){
-		if (!start_puzzle(path, &board, &fix_board, mode, command, nXm, &command_list)){
+		if (!start_puzzle(path, board, fix_board, mode, command, nXm, command_list)){
 			return FALSE;
 		}
 	}
@@ -639,24 +643,23 @@ int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_l
 		switch (command) {
 		case Mark_errors: *markErrors = args[0]; return TRUE;
 		case Print_board: break;
-		case Reset: reset(command_list, board, isUpdatedBoard); break;
-		case Exit: return exit_game(board, fix_board, command_list);
+		case Reset: reset(*command_list, *board, isUpdatedBoard); break;
+		case Exit: return exit_game(*board, *fix_board, *command_list);
 		default:
-			result = execute_if_valid_board(command,board,fix_board,*mode,isValidBoard,isUpdatedBoard,args,path,threshold,*numOfEmptyCells,*nXm);
+			result = execute_if_valid_board(command,*board,*fix_board,*mode,isValidBoard,isUpdatedBoard,args,path,threshold,*numOfEmptyCells,*nXm);
 			if (result != TRUE) {
 				return result;
 			}
 			if (command == Set || command == Autofill || command == Guess || command == Generate) {
-				add_command(command_list, board, command);
+				add_command(*command_list, *board, command);
 				break;
 			}
 			return TRUE; /* else (command ends without printing the board) */
 		}
 	}
-	print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
-	update_num_of_empty_cells(board, mode, *isValidBoard, numOfEmptyCells);
+	print_board(*board, *fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
+	update_num_of_empty_cells(*board, mode, *isValidBoard, numOfEmptyCells);
 	printf("\n");
-//	print_list(command_list,1);
 	return result;
 
 //	int moveExecuted = FALSE;
