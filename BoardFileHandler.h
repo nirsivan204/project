@@ -11,7 +11,7 @@
 #ifndef BOARDFILEHANDLER_H_
 #define BOARDFILEHANDLER_H_
 
-int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name);
+int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name);
 int save_board(char *path,BOARD *board,BOARD *fix_board,int mode);
 
 

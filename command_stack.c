@@ -39,9 +39,11 @@ void delete_next_nodes(node *node){
 }
 
 void delete_list(list* s){
-	delete_board(s->original_board);
-	delete_nodes_recursivley(s->first);
-	free(s);
+	if(s != NULL){
+		delete_board(s->original_board);
+		delete_nodes_recursivley(s->first);
+		free(s);
+	}
 }
 
 void add_command(list *s, BOARD *board_after_command, int command_name){
@@ -115,6 +117,9 @@ void print_node(node *node,int with_board){
 //	printf("command:%d\n",node->command);
 //	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
 //	printf("threshold is %f\n",node->threshold);
+	if(node == NULL){
+		return;
+	}
 	if(with_board==1){
 		if(node->board_after_command == NULL){
 			printf("board is NULL\n");

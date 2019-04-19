@@ -14,7 +14,7 @@ stack *init_stack(int digits_range){
 
 void delete_stack(stack *s){
 	if(s==NULL){
-		printf("stack is not initizalized");
+		printf("stack is not initialized");//remove
 		return;
 	}
 	stack_element *element = s->top;
@@ -36,7 +36,9 @@ void push(stack *s,int x, int y){
 }
 
 void delete_stack_element(stack_element *element){
-	free(element);
+	if(element !=NULL){
+		free(element);
+	}
 }
 
 int pop(stack *s, int *x,int *y,int *next_digit){
@@ -83,7 +85,7 @@ void print_stack(stack *s){
 }
 
 int find_next_empty_cell(BOARD *board,int *x,int *y){
-	int i,j = *y;
+	int i,j;
 	for (i=0;i<board->N*board->M;i++){
 		for (j=0;j<board->N*board->M;j++){
 			if(get_element_from_board(board,j,i)==0){

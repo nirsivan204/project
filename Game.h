@@ -5,12 +5,11 @@
 #define GAME_H_
 #include "backtracking_stack.h"
 #include "LP_handler.h"
-#include "Solver.h"
 #include "BoardFileHandler.h"
 #include "command_stack.h"
 
 
-void initialize_puzzle(BOARD *board, BOARD *fix_board, list *command_list);
+void initialize_puzzle();
 
 /*
  *  execute_command - performs a move on the current puzzle, according to a specific given command.

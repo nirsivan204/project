@@ -76,10 +76,10 @@ int current_mode = INIT;
 //
 //
 void file_system_tester(){
-	BOARD a,b;
+	BOARD *a,*b;
 	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b,3);
-	test_print_board(&a,&b);
-	save_board("C:/Users/nir/workspace/project/boards/test1.txt",&a,&b,0);
+	test_print_board(a,b);
+	save_board("C:/Users/nir/workspace/project/boards/test1.txt",a,b,0);
 }
 
 void command_stack_tester(){
@@ -125,10 +125,10 @@ void backtracking_stack_tester(){
 }
 
 void exhust_backtrack_tester(){
-	BOARD a,b;
+	BOARD *a,*b;
 	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test.txt",&a,&b,3);
-	test_print_board(&a,&b);
-	printf("res= %d",exhaustive_backtracking(&a));
+	test_print_board(a,b);
+	printf("res= %d",exhaustive_backtracking(a));
 }
 
 void map_tester(){
@@ -176,20 +176,20 @@ void put_sol_test(){
 
 void girobi_test(){
 
-	BOARD a,b;
+	BOARD *a,*b;
 
 	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
-	print_board(&a,&b,0,0,0,0);
-	int N = a.N;
-	int M = a.M;
+	print_board(a,b,0,0,0,0);
+	int N = a->N;
+	int M = a->M;
 	printf("N=%d,M=%d",N,M);
 	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
-	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	int num_of_vars = map_maker(a,map,N*M,N*M*N*M);
 	double *sol = (double *)calloc(num_of_vars,sizeof(double));
 	//srand(time(0));
-	gurobi(&a,num_of_vars,map,0,sol);
-    put_sol_in_board(&a,map,sol,N*M,N*N*M*M,0);
-    print_board(&a,&a,0,0,0,0);
+	gurobi(a,num_of_vars,map,0,sol);
+    put_sol_in_board(a,map,sol,N*M,N*N*M*M,0);
+    print_board(a,a,0,0,0,0);
     free(map);
     free(sol);
     //delete_board(&a);
@@ -197,21 +197,21 @@ void girobi_test(){
 
 void get_hint_test(){
 
-	BOARD a,b;
+	BOARD *a,*b;
 
 	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&a,&b,3);
-	print_board(&a,&b,0,0,0,0);
-	int N = a.N;
-	int M = a.M;
+	print_board(a,b,0,0,0,0);
+	int N = a->N;
+	int M = a->M;
 	printf("N=%d,M=%d",N,M);
 	int *map = (int*)calloc(N*N*N*M*M*M,sizeof(int));
-	int num_of_vars = map_maker(&a,map,N*M,N*M*N*M);
+	int num_of_vars = map_maker(a,map,N*M,N*M*N*M);
 	double *sol = (double *)calloc(num_of_vars,sizeof(double));
 	//srand(time(0));
-	gurobi(&a,num_of_vars,map,0,sol);
+	gurobi(a,num_of_vars,map,0,sol);
 	double *scores = (double *)calloc(N*M,sizeof(double));
     get_hint(map,sol,0,0,N*M,N*N*M*M,scores);
-    print_board(&a,&a,0,0,0,0);
+    print_board(a,a,0,0,0,0);
     print_array_double(scores,N*M);
     free(map);
     free(sol);
@@ -222,7 +222,7 @@ void get_hint_test(){
 
 void test_command(){
 	int i, num_of_commands, commands[] = {Solve, Set, Autofill, Reset, Autofill};
-	BOARD game_board, fix_board;
+	BOARD *game_board, *fix_board;
 	int nXm, mode, markErrors, args[3], execute, isValidBoard, isUpdatedBoard, numOfEmptyCells;
 	float threshold;
 	list command_list;
@@ -231,8 +231,8 @@ void test_command(){
 	mode = INIT, markErrors = TRUE, isValidBoard = FALSE, isUpdatedBoard = FALSE, numOfEmptyCells = 0;
 
 
-	initialize_puzzle(&game_board, &fix_board, &command_list);
-	nXm = game_board.N*game_board.M;
+	initialize_puzzle(game_board, fix_board, &command_list);
+	nXm = game_board->N*game_board->M;
 	args[0] = 1;
 	args[1] = 1;
 	args[2] = 1;
@@ -246,7 +246,7 @@ void test_command(){
 	for (i=0; i<num_of_commands; i++) {
 		char *commands[] = COMMAND_NAMES;
 			printf("\ncommand: %s\n\n", commands[i]);
-			int execute = execute_command(i, &game_board, &fix_board, &command_list, &markErrors, &mode, \
+			int execute = execute_command(i, game_board, fix_board, &command_list, &markErrors, &mode, \
 							&isValidBoard, &isUpdatedBoard, &nXm, &numOfEmptyCells, args, path, threshold);
 			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
 								execute, markErrors, mode, isValidBoard, isUpdatedBoard, numOfEmptyCells, nXm);
@@ -327,10 +327,22 @@ void backtracking_memory_test(){
 	delete_board(b);
 }
 
+save_and_load_memory_test(){
+	BOARD *b=NULL,*c=NULL;
+	int a=0;
+	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test2.txt",&b,&c,Solve);
+	//print_board(b,c,0,0,&a,&a);
+	//set_element_to_board(b,0,2,8);
+	//save_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/nir.txt",b,c,Solve);
+	delete_board(b);
+	delete_board(c);
+}
+
 int main(){
 	//build_and_delete_board_test();
 	//undo_and_redo_memory_test();
 	//backtracking_memory_test();
+	save_and_load_memory_test();
 	return 0;
 }
 
