@@ -35,9 +35,9 @@ BOARD* init_board(int N, int M) {
 	return result;
 }
 
-void init_boards(BOARD* board1, BOARD* board2, int N, int M) {
-	*board1 = *init_board(N,M);
-	*board2 = *init_board(N,M);
+void init_boards(BOARD** board1, BOARD** board2, int N, int M) {
+	*board1 = init_board(N,M);
+	*board2 = init_board(N,M);
 }
 
 void delete_block(BLOCK* block) {

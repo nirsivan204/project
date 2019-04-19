@@ -60,9 +60,9 @@ int close_file(FILE *file, int boolean) {
 }
 
 
-int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name){
-	FILE *file;
-	int N,M,x = 0 ,y = 0,z,is_fixed;
+int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
+	FILE *file = NULL;
+	int N,M,x,y,z,is_fixed;
 	file = fopen(path, "r");
 	if(file == NULL){
 		print_invalid_file_error(1);
@@ -74,15 +74,15 @@ int load_board(char *path,BOARD *board, BOARD *fix_board, int command_name){
 	}
 	init_boards(board, fix_board, N, M);
 	(fgetc(file));
-	for(;y<M*N;y++){
+	for(y=0;y<M*N;y++){
 		for(x=0;x<N*M;x++){
 			if (!read_next_element(file,&z,&is_fixed,N,M)) {
-//				delete_boards(board, fix_board);
+				//delete_boards(*board, *fix_board);
 				return close_file(file, FALSE);
 			}
-			set_element_to_board(board,x,y,z);
+			set_element_to_board(*board,x,y,z);
 			if (command_name == Solve) {
-				set_element_to_board(fix_board,x,y,is_fixed);
+				set_element_to_board(*fix_board,x,y,is_fixed);
 			}
 		}
 		fscanf(file,"\n");

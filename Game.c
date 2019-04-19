@@ -1,9 +1,9 @@
 #include "Game.h"
 #include <time.h>
 
-void initialize_puzzle(BOARD *board, BOARD *fix_board, list *command_list) {
-	init_boards(board, fix_board, 0, 0);
-	*command_list = *init_list(board);
+void initialize_puzzle() {
+	//init_boards(&board, &fix_board, 0, 0);
+	//*command_list = *init_list(board);
 	printf("Hello! Welcome to Sudoku!\n");
 }
 
@@ -38,8 +38,7 @@ void hint(BOARD *solution_board, int x, int y) {
 
 void guess_hint(int *map, double *sol, int x, int y, int nXm, int nXm_square) {
 	int i;
-	double *scores;
-	scores = (double*)calloc(nXm, sizeof(double));
+	double *scores = (double*)calloc(nXm, sizeof(double));
 	get_hint(map,sol,x-1,y-1,nXm,nXm_square,scores);
 	printf("Legal values of cell <%d,%d>:\n", x, y);
 	for (i = 1; i<=nXm; i++) {
@@ -204,8 +203,8 @@ int update_changes_in_board(BOARD *copy_to_board, BOARD *copy_from_board, int wi
 
 int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
 	int count;
-	BOARD *list_board;
-	node *node;
+	BOARD *list_board = NULL;
+	node *node = NULL;
 	node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
 	if (!validate_move(node != NULL, 5, command, 0, 0)) {
 		return FALSE;
@@ -349,8 +348,8 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
 
 int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], int selected_empty_cells[], \
 		int digits[], int x, int numOfEmptyCells, int nXm, int nXm_square) {
-	double *sol;
-	int index, *map ,num_of_vars, gurobi_result;
+	double *sol = NULL;
+	int index, *map = NULL ,num_of_vars, gurobi_result;
 	gurobi_result = TRUE;
 	for (index=0; index<numOfEmptyCells; index++) {
 		copy_all[index] = all_empty_cells[index];
@@ -419,26 +418,31 @@ void num_solutions(BOARD *board) {
 	printf("This board has %d solutions.\n",exhaustive_backtracking(board));
 }
 
-int start_puzzle(char *path,BOARD *board,BOARD *fix_board,int *mode,int command_name,int *nXm,list *command_list){
-	BOARD copy_game, copy_fix;
+int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int command_name,int *nXm,list **command_list){
+	BOARD *copy_game = NULL, *copy_fix = NULL;
 	printf("%s",path);
 	if (strlen(path) > 0) { /* command has a parameter */
 		if (!load_board(path, &copy_game, &copy_fix, command_name)) {
+			delete_board(copy_game);
+			delete_board(copy_fix);
 			return FALSE;
 		}
 	}
+	delete_list(*command_list);
+	delete_boards(*board,*fix_board);
 //	free_all(board, fix_board, command_list);
 	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
 		init_boards(board, fix_board, 3, 3);
 	}
 	else { /* command has a parameter, copy_game and copy_fix*/
-		*board = *copy_board(&copy_game);
-		*fix_board = *copy_board(&copy_fix);
-//		delete_boards(&copy_game, &copy_fix);
+		*board = copy_board(copy_game);
+		*fix_board = copy_board(copy_fix);
 	}
-	*command_list = *init_list(board);
+	*command_list = init_list(*board);
 	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
-	*nXm = board->N*board->M;
+	*nXm = (*board)->N*(*board)->M;
+	delete_board(copy_game);
+	delete_board(copy_fix);
 	return TRUE;
 }
 
@@ -468,7 +472,7 @@ int start_puzzle(char *path,BOARD *board,BOARD *fix_board,int *mode,int command_
 //}
 
 int execute_solution_based_command(int command, BOARD *board, int *args, float threshold, int numOfEmptyCells, int nXm, int *isUpdatedBoard) {
-	BOARD *solution_board;
+	BOARD *solution_board = NULL;
 	int isSolvable, isExecuted, x, y, nXm_square, *map, num_of_vars, gurobi_result;
 	double *sol;
 	solution_board = copy_board(board);
@@ -505,7 +509,7 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 
 		}
 	}
-//	delete_board(solution_board);
+	delete_board(solution_board);
 	free(sol);
 	free(map);
 	return isExecuted;
@@ -627,7 +631,7 @@ int execute_command(int command, BOARD *board, BOARD *fix_board, list *command_l
 		}
 	}
 	else if (command == Edit || command == Solve){
-		if (!start_puzzle(path, board, fix_board, mode, command, nXm, command_list)){
+		if (!start_puzzle(path, &board, &fix_board, mode, command, nXm, &command_list)){
 			return FALSE;
 		}
 	}
