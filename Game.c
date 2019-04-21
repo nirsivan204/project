@@ -53,11 +53,6 @@ void validate(int isSolvable) {
 	printf(isSolvable ? "Validation passed: board is solvable.\n" : "Validation failed: board is unsolvable.\n");
 }
 
-void free_all(BOARD *board, BOARD *fix_board, list *command_list) {
-	delete_list(command_list);
-	delete_boards(board, fix_board);
-}
-
 /**
  * execute the "exit" command: free all resources, prints an exit message (and terminate the program).
  *
@@ -184,7 +179,7 @@ void print_finish_update(int command, char character, int count, int *isUpdatedB
 }
 
 int update_changes_in_board(BOARD *copy_to_board, BOARD *copy_from_board, int withOutput) {
-	int i, j, copy_to_val, copy_from_val, count;
+	int i, j, copy_to_val, copy_from_val, count = 0;
 	for (i=0;i<copy_to_board->M*copy_to_board->N;i++){
 		for (j=0;j<copy_to_board->M*copy_to_board->N;j++) {
 			copy_to_val = get_element_from_board(copy_to_board, i, j);

@@ -4,11 +4,20 @@ BLOCK* init_block(int N, int M) {
 	BLOCK* result;
 	int i = 0;
 	result = (BLOCK*)malloc(sizeof(BLOCK));
+	if (result == NULL) {
+		print_system_error(1, "couldn't build board");
+	}
 	result->M = M;
 	result->N = N;
 	result->values = (int**)malloc(sizeof(int*)*M);
+	if (result->values == NULL) {
+		print_system_error(1, "couldn't build board");
+	}
 	for(;i<M;i++) {
 		result->values[i] = (int*)calloc(N, sizeof(int));
+		if (result->values[i] == NULL) {
+			print_system_error(1, "couldn't build board");
+		}
 	}
 	return result;
 }
@@ -21,10 +30,19 @@ BOARD* init_board(int N, int M) {
 	result->M = M;
 	result->N = N;
 	result->blocks = (BLOCK***)malloc(sizeof(BLOCK**)*N);
+	if (result->blocks == NULL) {
+		print_system_error(1, "couldn't build board");
+	}
 	for(;i<N;i++) {
 		result->blocks[i] = (BLOCK**)malloc(sizeof(BLOCK*)*M);
+		if (result->blocks[i] == NULL) {
+			print_system_error(1, "couldn't build board");
+		}
 		for(j=0;j<M;j++){
 			result->blocks[i][j] = init_block(N,M);
+			if (result->blocks[i][j] == NULL) {
+				print_system_error(1, "couldn't build board");
+			}
 		}
 	}
 	for(i=0; i<(3*N+2)*M+1;i++){ /*4*N*M+M+1*/
@@ -70,11 +88,6 @@ void delete_board(BOARD* board) {
 	free(board);
 }
 
-void delete_boards(BOARD* board1, BOARD* board2) {
-	delete_board(board1);
-	delete_board(board2);
-}
-
 /*
  * return a value of a cell in a block
  * @param block - the block of interest.
@@ -110,18 +123,6 @@ void set_element_to_board(BOARD *board, int x,int y,int z){/*setting the element
 	set_element_to_block(board->blocks[y/board->M][x/board->N],x,y,z);
 }
 
-/*
- * this function defined in the .h file.
- */
-void zero_board(BOARD *board){/*setting all the elements in board to 0*/
-	int i;
-	int j;
-	for (i=0;i<board->M*board->N;i++){
-		for (j=0;j<board->M*board->N;j++){
-			set_element_to_board(board,j,i,0);
-		}
-	}
-}
 /*
  * checks if this column in board contains z
  * @param board - the board of interest.
@@ -310,13 +311,6 @@ void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode, int*
 	printf("%s",board->line_seperator);
 }
 
-void test_print_board(BOARD *board, BOARD *fixed_board) {
-	int *isValidBoard, *isUpdatedBoard, i = 1;
-	isValidBoard = &i;
-	isUpdatedBoard = &i;
-	print_board(board, fixed_board,1,1,isValidBoard,isUpdatedBoard);
-}
-
 /*this function is copying all the cells' value of one block to another block.
  * @param in_block - the block needed to be copied.
  * @param out_block - the block that will be a copy of in_board after the function call
@@ -325,13 +319,25 @@ void test_print_board(BOARD *board, BOARD *fixed_board) {
 BLOCK *copy_Block(BLOCK *in_block){ /*return a copy of in_block*/
 	BLOCK *res;
 	res = (BLOCK*)malloc(sizeof(BLOCK));
+	if (res == NULL) {
+		print_system_error(1, "couldn't copy board");
+	}
 	res->M = in_block->M;
 	res->N = in_block->N;
 	res->values = (int**)malloc(res->M*sizeof(int*));
+	if (res->values == NULL) {
+		print_system_error(1, "couldn't copy board");
+	}
+	if (res == NULL) {
+		print_system_error(1, "couldn't copy board");
+	}
 	int i=0;
 	int j=0;
 	for (i=0;i<in_block->M;i++){/*for each row of block*/
 		res->values[i] = (int*)malloc(res->N*sizeof(int));
+		if (res->values[i] == NULL) {
+			print_system_error(1, "couldn't copy board");
+		}
 		for(j=0;j<in_block->N;j++){/*for each column of block*/
 			res->values[i][j]=in_block->values[i][j];/*copy element*/
 		}
@@ -344,18 +350,28 @@ BLOCK *copy_Block(BLOCK *in_block){ /*return a copy of in_block*/
  */
 
 BOARD *copy_board(BOARD *in_board){/*return a copy of in_board*/
+	BOARD *res = NULL;
 	if(in_board == NULL){
 		return NULL;
 	}
-	BOARD *res = (BOARD*)malloc(sizeof(BOARD));
+	res = (BOARD*)malloc(sizeof(BOARD));
+	if (res == NULL) {
+		print_system_error(1, "couldn't copy board");
+	}
 	res->M = in_board->M;
 	res->N = in_board->N;
 	strcpy(res->line_seperator,in_board->line_seperator);
 	res->blocks = (BLOCK***)malloc(res->N*sizeof(BLOCK**));
+	if (res->blocks == NULL) {
+		print_system_error(1, "couldn't copy board");
+	}
 	int i=0;
 	int j=0;
 	for (i=0;i<in_board->N;i++){/*for each row of blocks in board*/
 		res->blocks[i] = (BLOCK**)malloc(res->M*sizeof(BLOCK*));
+		if (res->blocks[i] == NULL) {
+			print_system_error(1, "couldn't copy board");
+		}
 		for(j=0;j<in_board->M;j++){/*for each column of blocks in board*/
 			res->blocks[i][j] = copy_Block(in_board->blocks[i][j]);/*copy block*/
 		}

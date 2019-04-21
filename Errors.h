@@ -10,7 +10,7 @@
 #ifndef ERRORS_H_
 #define ERRORS_H_
 
-void print_system_error(int error_number);
+void print_system_error(int error_number, char *string);
 
 void print_invalid_command_error(int error_number, int arg1, int arg2, int arg3, int arg4);
 

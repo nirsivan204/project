@@ -5,6 +5,10 @@
  * 						cells with values that never change throughout the game.
  * read_command - reads, interprets and checks validation of the user's inputs lines that represents commands.
  */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "Errors.h"
 #define MAX_COMMAND_LENGTH 256
 #define COMMAND_NAMES {"mark_errors", "guess", "hint", "guess_hint", "autofill", "print_board", "set", "validate", "undo", "redo", \

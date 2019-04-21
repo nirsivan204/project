@@ -202,7 +202,9 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 				printf("val = %d\n",val);
 				set_element_to_board(board,j,i,val);
 			}else{
-				res = FALSE;
+				if (map_index != -1) {
+					res = FALSE;
+				}
 			}
 			num_of_legal_values = 0;
 		}

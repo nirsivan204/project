@@ -97,6 +97,7 @@ node* forward_current_command(list *s){
 }*/
 
 node* move_in_command_list(list *s, int command_name) {
+	print_list(s, 0);
 	if (command_name == Undo) {
 		if(s->current_command!=NULL){
 			s->current_command = s->current_command->prev;
@@ -112,6 +113,7 @@ node* move_in_command_list(list *s, int command_name) {
 			printf("can't redo, no next commands\n");
 		}
 	}
+	print_list(s, 0);
 	return s->current_command;
 }
 
@@ -126,7 +128,7 @@ void print_node(node *node,int with_board){
 		if(node->board_after_command == NULL){
 			printf("board is NULL\n");
 		}else{
-			test_print_board(node->board_after_command,node->board_after_command);
+			/*test_print_board(node->board_after_command,node->board_after_command);*/
 		}
 	}
 	printf("command: %c\n", node->command);
