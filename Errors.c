@@ -1,11 +1,11 @@
 
 #include "Errors.h"
 
-void print_system_error(int error_number) {
+void print_system_error(int error_number, char* function_name) {
 	printf("System Error: ");
 	switch (error_number) {
-	case 1: printf("Problem with memory allocation."); break;
-	case 2: printf("Problem in Gurobi."); break;
+	case 1: printf("Problem with memory allocation in function %s.",function_name); exit(errno);
+	case 2: printf("Problem in Gurobi."); exit(errno);
 	}
 	printf("\n");
 }
