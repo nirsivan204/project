@@ -146,8 +146,8 @@ int block_constraint(BOARD *board,int *map,int block_row, int block_col,int digi
 
 int choose_value_by_probability(double *scores,int *values,int num_of_values){
 	int i,total_sum = 0;
-	double *partial_sum_array = (double*)calloc(num_of_values,sizeof(double));
 	double random_number = get_rand_number(RAND_MAX)/RAND_MAX;
+	double *partial_sum_array = (double*)calloc(num_of_values,sizeof(double));
 	if(partial_sum_array == NULL){
 		print_system_error(1,"error in allocating memory for partial_sum_array");
 	}
@@ -241,12 +241,12 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   double    *val = (double*)malloc(num_of_var*sizeof(double));
   double    *obj = (double*)malloc(num_of_var*sizeof(double));
   char      *vtype = (char*)malloc(num_of_var*sizeof(char));
-  int       optimstatus;
-  double    objval;
+  int       optimstatus = 0;
+  double    objval = 0;
   int i,j,k;
   int nXm = board->M*board->N;
   int nXm_square = nXm*nXm;
-  int constraint_len;
+  int constraint_len = 0;
   if(ind==NULL || val == NULL ||obj ==NULL || vtype==NULL){
 	  print_system_error(1,"error in allocating memory for gurobi arrays");
   }

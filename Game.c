@@ -137,7 +137,6 @@ int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
 	BOARD *list_board = NULL;
 	node *node = NULL;
 	int res = move_in_command_list(list,command);
-	//node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
 	if (!validate_move(res, 5, command, 0, 0)) {
 		return FALSE;
 	}
