@@ -11,7 +11,7 @@ void print_system_error(int error_number, char* function_name) {
 }
 
 void print_mode_error(int mode, int command_name) {
-	char* string;
+	char* string = NULL;
 	switch (mode) {
 	case INIT: string = "Init mode"; break;
 	case EDIT: string = "Edit mode"; break;

@@ -7,6 +7,9 @@
 #include "backtracking_stack.h"
 stack *init_stack(int digits_range){
 	stack *res = (stack*)malloc(sizeof(stack));
+	if(res == NULL){
+		print_system_error(1,"Couldn't malloc enough memory for backtracking stack");
+	}
 	res->top = NULL;
 	res->digits_range = digits_range;
 	return res;
@@ -14,7 +17,7 @@ stack *init_stack(int digits_range){
 
 void delete_stack(stack *s){
 	if(s==NULL){
-		printf("stack is not initialized");//remove
+		//printf("stack is not initialized");//remove
 		return;
 	}
 	stack_element *element = s->top;
@@ -28,6 +31,9 @@ void delete_stack(stack *s){
 
 void push(stack *s,int x, int y){
 	stack_element *element =(stack_element*) malloc(sizeof(stack_element));
+	if(element == NULL){
+		print_system_error(1,"Couldn't malloc enough memory for backtracking stack element");
+	}
 	element->x = x;
 	element->y = y;
 	element->next_digit = 0;
@@ -44,7 +50,6 @@ void delete_stack_element(stack_element *element){
 int pop(stack *s, int *x,int *y,int *next_digit){
 	if(s == NULL){
 		printf("stack is not initialized\n");
-		assert(0);
 	}
 	if(s->top == NULL){
 		printf("stack is empty\n");

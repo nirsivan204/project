@@ -148,7 +148,9 @@ int choose_value_by_probability(double *scores,int *values,int num_of_values){
 	int i,total_sum = 0;
 	double *partial_sum_array = (double*)calloc(num_of_values,sizeof(double));
 	double random_number = get_rand_number(RAND_MAX)/RAND_MAX;
-	print_array_double(scores,num_of_values);
+	if(partial_sum_array == NULL){
+		print_system_error(1,"error in allocating memory for partial_sum_array");
+	}
 	partial_sum_array[0] = scores[0];
 	if(num_of_values > 1){
 		for(i=1;i<num_of_values;i++){
@@ -172,9 +174,15 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 	int row_offset,col_offset,map_index;
 	int val = 0;
 	int num_of_legal_values = 0;
-	int res = TRUE;
+	int res = TRUE, *legal_values_array = NULL;
 	double *legal_scores_array = (double *)calloc(nXm,sizeof(double));
-	int *legal_values_array = (int *)calloc(nXm,sizeof(int));
+	if(legal_scores_array == NULL){
+		print_system_error(1,"error in allocating memory for legal_scores_array");
+	}
+	legal_values_array = (int *)calloc(nXm,sizeof(int));
+	if(legal_values_array == NULL){
+		print_system_error(1,"error in allocating memory for legal_values_array");
+	}
 	for(i = 0; i<nXm; i++){
 		row_offset = i*nXm_square;
 		for(j = 0; j<nXm; j++){
@@ -184,11 +192,7 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 				if(map_index>-1){
 					printf("i=%d j=%d k=%d score = %f\n",i,j,k,sol[map_index]);
 					if(sol[map_index] >= threshold){
-						if(i==0&&j==4){
-							printf("k = %d,is valid =  %d\n",k,is_valid_insertion_to_empty_cell(board,j,i,k));
-						}
 						if(is_valid_insertion_to_empty_cell(board,j,i,k)){
-							//printf("im here");
 							legal_scores_array[num_of_legal_values] = sol[map_index];
 							legal_values_array[num_of_legal_values] = k;
 							num_of_legal_values++;
@@ -233,7 +237,6 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
   int       error = 0,res;
-  //double    *sol = (double*)malloc(num_of_var*sizeof(double));
   int       *ind = (int*)malloc(board->N*board->M*sizeof(int));
   double    *val = (double*)malloc(num_of_var*sizeof(double));
   double    *obj = (double*)malloc(num_of_var*sizeof(double));
@@ -244,6 +247,9 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   int nXm = board->M*board->N;
   int nXm_square = nXm*nXm;
   int constraint_len;
+  if(ind==NULL || val == NULL ||obj ==NULL || vtype==NULL){
+	  print_system_error(1,"error in allocating memory for gurobi arrays");
+  }
 //  /* Create environment - log file is mip1.log */
   error = GRBloadenv(&env, "mip1.log");
   if (error) {
@@ -400,7 +406,7 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 /*   solution found*/
   if (optimstatus == GRB_OPTIMAL) {
 	  printf("Optimal objective: %.4e\n", objval);
-	  res = 1;
+	  res = TRUE;
   }
 /*   no solution found*/
   else if (optimstatus == GRB_INF_OR_UNBD) {

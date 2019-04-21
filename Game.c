@@ -1,9 +1,6 @@
 #include "Game.h"
-#include <time.h>
 
 void initialize_puzzle() {
-	//init_boards(&board, &fix_board, 0, 0);
-	//*command_list = *init_list(board);
 	printf("Hello! Welcome to Sudoku!\n");
 }
 
@@ -26,19 +23,12 @@ void hint(BOARD *solution_board, int x, int y) {
 	printf("According to current board's solution, value of cell <%d,%d> should be %d.\n",x,y,get_element_from_board(solution_board,x-1,y-1));
 }
 
-//void print_scores(int x, int y, int nXm, double *scores) {
-//	int i;
-//	printf("Legal values of cell <%d,%d>:\n", x+1, y+1);
-//	for (i = 1; i<=nXm; i++) {
-//		if (scores[i-1] > 0) {
-//			printf("%d with score of: %f\n",i, scores[i-1]);
-//		}
-//	}
-//}
-
 void guess_hint(int *map, double *sol, int x, int y, int nXm, int nXm_square) {
 	int i;
 	double *scores = (double*)calloc(nXm, sizeof(double));
+	if(scores == NULL){
+		print_system_error(1,"error in allocating an array for the scores");
+	}
 	get_hint(map,sol,x-1,y-1,nXm,nXm_square,scores);
 	printf("Legal values of cell <%d,%d>:\n", x, y);
 	for (i = 1; i<=nXm; i++) {
@@ -57,26 +47,10 @@ void validate(int isSolvable) {
  * execute the "exit" command: free all resources, prints an exit message (and terminate the program).
  *
  */
-int exit_game(BOARD *board, BOARD *fix_board, list *command_list) {
-//	free_all(board, fix_board, command_list);
+int exit_game() {
 	printf("Goodbye! Thank you for playing Sudoku!\n");
 	return TERMINATE;
 }
-
-
-//int find_value_in_board(BOARD *board,int x) {
-//	assert(x==0||x==2);
-//	int i,j;
-//	for (i=0;i<board->M*board->N;i++){
-//		for (j=0;j<board->M*board->N;j++) {
-//			if (get_element_from_board(board, i, j) == x) {
-//				return TRUE;
-//			}
-//		}
-//	}
-//	return FALSE;
-//}
-
 
 int count_empty_cells(BOARD* board) {
 	int i, j, count = 0;
@@ -103,46 +77,8 @@ void update_num_of_empty_cells(BOARD *board, int *mode, int isValidBoard, int *n
 	}
 }
 
-/*
-int puzzle_is_full_or_correct(BOARD *board,int x) {
-	assert(x==0||x==2);
-	int i;
-	int j;
-	for (i=0;i<board->M*board->N;i++){
-		for (j=0;j<board->M*board->N;j++) {
-			if (get_element_from_board(board, i, j) == x) {
-				return 0;
-			}
-		}
-	}
-	if(x == 0){
-		printf("Puzzle is Full\n");
-	}else{
-		printf("Puzzle is correct\n");
-	}
-	return 1;
-}
-*/
-
-
-/*
- * sets the value of a cell and prints the current puzzle.
- *
- * @param board - the current puzzle.
- * @param fix_board - a puzzle that contains only values that never change throughout the game.
- * @param x - the required cells's column.
- * @param y - the required cells's row.
- * @param z - the required cells's new given value.
- */
-/*
-void insert(BOARD *board,BOARD *fix_board, int x, int y, int z) {
-	set_element_to_board(board,x,y,z);
-	print_board(board, fix_board,1,1);
-}
-*/
-
 void print_start_update(int command) {
-	char *command_name;
+	char *command_name = NULL;
 	switch (command) {
 	case Undo: command_name = "undo"; break;
 	case Redo: command_name = "redo"; break;
@@ -162,7 +98,7 @@ void update_count(int count, int* isUpdatedBoard) {
 }
 
 void print_finish_update(int command, char character, int count, int *isUpdatedBoard) {
-	char *command_name;
+	char *command_name = NULL;
 	update_count(count, isUpdatedBoard);
 	printf("Number of updated cells in this move: %d. ", count);
 	if (command != Autofill) {
@@ -200,13 +136,12 @@ int undo_or_redo(list *list, BOARD *board, int command, int* isUpdatedBoard) {
 	int count;
 	BOARD *list_board = NULL;
 	node *node = NULL;
-	node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
-	if (!validate_move(node != NULL, 5, command, 0, 0)) {
+	int res = move_in_command_list(list,command);
+	//node = command == Undo ? list->current_command : move_in_command_list(list, Redo);
+	if (!validate_move(res, 5, command, 0, 0)) {
 		return FALSE;
 	}
-	if (command == Undo) {
-		node = move_in_command_list(list, Undo);
-	}
+	node = list->current_command;
 	list_board = get_curr_board(list);
 	print_start_update(command);
 	count = update_changes_in_board(board,list_board,TRUE);
@@ -316,7 +251,6 @@ void emtpy_cells(BOARD* board, int selected_empty_cells[], int limit, int nXm) {
 		cell_num = selected_empty_cells[index];
 		x = cell_num%nXm;
 		y = cell_num/nXm;
-		assert(y*nXm+x == cell_num);
 		set_element_to_board(board, x, y, 0);
 	}
 }
@@ -328,7 +262,7 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
 	for (i = 0; i < nXm; i++) {
 		digits[i] = i+1;
 	}
-	//choose random digit, if is_valid_insertion: set and return TRUE. else- delete digit from array and repeat.
+	/*choose random digit, if is_valid_insertion: set and return TRUE. else- delete digit from array and repeat.*/
 	while (nXm > 0) {
 		rand_index = get_random_number(nXm);
 		rand_digit = digits[rand_index];
@@ -356,10 +290,15 @@ int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], 
 			return FALSE;
 		}
 	}
-	map= (int*)calloc(nXm*nXm_square, sizeof(int));
+	map = (int*)calloc(nXm*nXm_square, sizeof(int));
+	if(map == NULL){
+		print_system_error(1,"error in allocating memory for map");
+	}
 	num_of_vars = map_maker(board, map, nXm, nXm_square);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
-
+	if(sol == NULL){
+		print_system_error(1,"error in allocating memory for scores");
+	}
 	if (gurobi(board,num_of_vars,map,TRUE,sol) != TRUE || !put_sol_in_board(board,map,sol,nXm,nXm_square,0)) {
 		emtpy_cells(board, selected_empty_cells, x, nXm);
 		gurobi_result = FALSE;
@@ -367,20 +306,9 @@ int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], 
 	free(map);
 	free(sol);
 	return gurobi_result;
-//	res = gurobi(board, num_of_vars, map, TRUE, sol);
-//	if(res == -1){
-//		printf("error in girobi fill x in cells");
-//		return FALSE;
-//	}
-//	if (res==FALSE) {
-//		emtpy_cells(board, selected_empty_cells, x);
-//		return FALSE;
-//	}
-//	return TRUE;
 }
 
-void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) {
-//choose (nXm - y) cells and empty them
+void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) {/*choose (nXm - y) cells and empty them*/
 	int i, rand_index, rand_cell_num, all_cells[curr_num_of_cells];
 	for (i = 0; i < curr_num_of_cells; i++) {
 		all_cells[i] = i;
@@ -391,7 +319,6 @@ void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) 
 		set_element_to_board(board, rand_cell_num%nXm, rand_cell_num/nXm, 0);
 		all_cells[rand_index] = all_cells[--curr_num_of_cells];
 	}
-
 }
 
 int generate(BOARD *board, BOARD *solution_board, int x, int y, int numOfEmptyCells, int nXm, int nXm_square) {
@@ -422,13 +349,9 @@ int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int comman
 			return FALSE;
 		}
 	}
-	if(*command_list==NULL){
-		printf("nnn");
-	}
 	delete_list(*command_list);
 	delete_board(*board);
 	delete_board(*fix_board);
-//	free_all(board, fix_board, command_list);
 	if (strlen(path) == 0) { /* command is 'edit', with no parameters */
 		init_boards(board, fix_board, 3, 3);
 	}
@@ -437,7 +360,6 @@ int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int comman
 		*fix_board = copy_board(copy_fix);
 	}
 	*command_list = init_list(*board);
-	//print_list(command_list,FALSE);
 	*mode = command_name == Edit ? EDIT : SOLVE; /*change mode to Edit or Solve, if the command is 'edit' or 'solve', respectively.*/
 	*nXm = (*board)->N*(*board)->M;
 	delete_board(copy_game);
@@ -445,40 +367,21 @@ int start_puzzle(char *path,BOARD **board,BOARD **fix_board,int *mode,int comman
 	return TRUE;
 }
 
-//void execute_move(int command, BOARD *board, BOARD *solution_board, int args[], float threshold, int* isValidBoard, int* isUpdatedBoard) {
-//	switch(command) {
-//	case Set: set(board, args[0]-1, args[1]-1, args[2], isValidBoard, isUpdatedBoard); return;
-//	case Autofill: autofill(board, isUpdatedBoard); return;
-//	default: /* command is 'generate' or 'guess'*/
-//		update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
-//	}
-//}
-
-//void execute_after_validation(int command, BOARD *board, BOARD *solution_board, int* isValidBoard, int* isUpdatedBoard, \
-//		int args[], float threshold, list *command_list) {
-//	switch (command) {
-//	case Num_solutions: num_solutions(board); return;
-//	case Hint: hint(solution_board, args[0], args[1]); break;
-//	case Guess_hint: break;
-//	default: /* command is either 'autofill', 'generate, 'guess' or 'set' */
-//		execute_move(command, board, solution_board, args, threshold, isValidBoard, isUpdatedBoard);
-//		add_command(command_list, board, command);
-//		if (command == Set || command == Autofill) {
-//			return;
-//		}
-//	}
-////	delete_board(solution_board);
-//}
-
 int execute_solution_based_command(int command, BOARD *board, int *args, float threshold, int numOfEmptyCells, int nXm, int *isUpdatedBoard) {
 	BOARD *solution_board = NULL;
-	int isSolvable, isExecuted, x, y, nXm_square, *map, num_of_vars, gurobi_result;
-	double *sol;
+	int isSolvable, isExecuted, x, y, nXm_square, *map = NULL, num_of_vars, gurobi_result;
+	double *sol = NULL;
 	solution_board = copy_board(board);
 	x = args[0], y = args[1], isExecuted = TRUE, nXm_square =nXm*nXm;
 	map= (int*)calloc(nXm*nXm_square, sizeof(int));
+	if(map == NULL){
+		print_system_error(1,"error in allocating memory for map");
+	}
 	num_of_vars = map_maker(board, map, nXm, nXm_square);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
+	if(sol == NULL){
+		print_system_error(1,"error in allocating memory for scores");
+	}
 	gurobi_result = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
 	if (gurobi_result == TERMINATE) {
 		print_system_error(2,NULL);
@@ -512,61 +415,6 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 	free(sol);
 	free(map);
 	return isExecuted;
-
-//	int res,is_full;
-//	double *scores;
-//	int x = args[0]-1;
-//	int y = args[1]-1;
-//	int *map,result,num_of_vars;
-//	double *sol;
-//	int nXm_square =nXm*nXm;
-//	*solution_board = *copy_board(board);
-//	map= (int*)calloc(nXm*nXm_square, sizeof(int));
-//	num_of_vars = map_maker(board, map, nXm, nXm_square);
-//	sol = (double*)calloc(num_of_vars, sizeof(double));
-//	res = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
-//	if (res != -1) {
-//		if (command == Validate) {
-//			print_validation_status(res);
-////			delete_board(solution_board);
-//			free(sol);
-//			free(map);
-//			return TRUE;
-//		}
-//		if(res==0){
-//			printf("not feasible");
-//			return FALSE;
-//		}
-//		is_full = put_sol_in_board(solution_board,map,sol,nXm,nXm_square,threshold);
-//		if (command == Guess) {
-//				free(sol);
-//				free(map);
-//				return TRUE;
-//		}
-//		if (!validate_move(is_full,2,0,0,command)) {
-//				free(sol);
-//				free(map);
-//				return FALSE;
-//		}
-//		if (command == Guess_hint) {
-//			scores = (double*)calloc(nXm, sizeof(double));
-//			get_hint(map,sol,x,y,nXm,nXm_square,scores);
-//			print_scores(x, y, nXm, scores);
-//			free(scores);
-//			free(sol);
-//			free(map);
-//		}
-//		if (command == Generate && !generate(board, solution_board, args[0], args[1], numOfEmptyCells, nXm)) {
-//					free(sol);
-//					free(map);
-//					return FALSE;
-//		}
-//		return TRUE;
-//	}else{
-//
-//		printf("error in girobi");
-//		return FALSE;
-//	}
 }
 
 int validate_cell(int command, BOARD *board, BOARD *fix_board, int x, int y) {
@@ -639,7 +487,7 @@ int execute_command(int command, BOARD **board, BOARD **fix_board, list **comman
 		case Mark_errors: *markErrors = args[0]; return TRUE;
 		case Print_board: break;
 		case Reset: reset(*command_list, *board, isUpdatedBoard); break;
-		case Exit: return exit_game(*board, *fix_board, *command_list);
+		case Exit: return exit_game();
 		default:
 			result = execute_if_valid_board(command,*board,*fix_board,*mode,isValidBoard,isUpdatedBoard,args,path,threshold,*numOfEmptyCells,*nXm);
 			if (result != TRUE) {
@@ -656,57 +504,4 @@ int execute_command(int command, BOARD **board, BOARD **fix_board, list **comman
 	update_num_of_empty_cells(*board, mode, *isValidBoard, numOfEmptyCells);
 	printf("\n");
 	return result;
-
-//	int moveExecuted = FALSE;
-//	switch (command) {
-//	case Mark_errors:
-//		*markErrors = args[0];
-//		return TRUE;
-//	case Hint:
-//		//
-//		return TRUE;
-//	case Guess_hint:
-//		//
-//		return TRUE;
-//	case Print_board:
-//		break;
-//	case Validate:
-//		return validate(board, fix_board, command, isValidBoard, isUpdatedBoard);
-//	case Num_solutions:
-//		return num_solutions(board, fix_board, isValidBoard, isUpdatedBoard);
-//	case Reset:
-//		reset(command_list, board, isUpdatedBoard);
-//		break;
-//	case Save:
-//		return save(path, board, fix_board, isValidBoard, isUpdatedBoard, *mode);
-//	case Exit:
-//		return exit_game(board, fix_board, command_list);
-//	default:
-//		if (command == Undo || command == Redo) {
-//			if (!undo_or_redo(command_list, board, command, isUpdatedBoard)) {
-//				return FALSE;
-//			}
-//		}
-//		else if (command == Edit || command == Solve){
-//			if (!start_puzzle(path, board, fix_board, mode, command, nXm, command_list)){
-//				return FALSE;
-//			}
-//		}
-//		else { /* command is either 'autofill', 'generate, 'guess' or 'set' */
-//			if (!execute_move(command, board, fix_board, args, threshold, isValidBoard, isUpdatedBoard)) {
-//				return FALSE;
-//			}
-//			moveExecuted = TRUE;
-//		}
-//	}
-//	print_board(board, fix_board, *markErrors, *mode, isValidBoard, isUpdatedBoard);
-//	if (moveExecuted) {
-//		add_command(command_list, board, command);
-//	}
-//	update_num_of_empty_cells(board, mode, *isValidBoard, numOfEmptyCells);
-//	printf("\n");
-////	print_list(command_list,1);
-//	return TRUE;
-
 }
-
