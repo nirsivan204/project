@@ -5,6 +5,7 @@
  *      Author: ebay
  */
 #include "MainAux.h"
+#include <errno.h>
 
 #ifndef ERRORS_H_
 #define ERRORS_H_

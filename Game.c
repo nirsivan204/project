@@ -486,7 +486,7 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 	sol = (double*)calloc(num_of_vars, sizeof(double));
 	gurobi_result = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
 	if (gurobi_result == TERMINATE) {
-		print_system_error(2);
+		print_system_error(2,NULL);
 		isExecuted = TERMINATE;
 	}
 	else {
