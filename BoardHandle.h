@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "strings.h"
+#include "Errors.h"
 #include "MainAux.h"
 
 #ifndef BOARDHANDLER_H_
@@ -36,8 +37,6 @@ void delete_block(BLOCK* block);
 
 void delete_board(BOARD* board);
 
-void delete_boards(BOARD* board1, BOARD* board2);
-
 /*
  * this function return a value of a cell in the board
  * @param board - the board.
@@ -57,13 +56,6 @@ int get_element_from_board(BOARD *board, int x,int y);
  *
  */
 void set_element_to_board(BOARD *board, int x,int y,int z);
-
-/*
- * this function initialize the board with zeros (empty cells)
- * @param board - the board needed to be empty. the board will be initialized with zeros
- *
- */
-void zero_board(BOARD *board);
 
 
 
@@ -95,8 +87,6 @@ int is_valid_board(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isU
  *
  */
 void print_board(BOARD *board, BOARD *fixed_board, int mark_errors, int mode, int* isValidBoard, int* isUpdatedBoard);
-
-void test_print_board(BOARD *board, BOARD *fixed_board);
 
 /*this function is copying all the cells' value of one board to another board.
  * @param in_board  - the board needed to be copied.

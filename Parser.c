@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
+
 #include "Parser.h"
 
 /**
@@ -43,21 +40,6 @@ int compare_num_of_params(int command_name, int num_of_params, int legal_num_of_
 		return num_of_params < 2 ? 0 : 1;
 	}
 	return num_of_params - legal_num_of_params;
-}
-
-/**
- * checks if 'number' is between 'minValue' and 'maxValue'.
- *
- * @param number - the checked number.
- * @param minValue - the bottom limit.
- * @param maxValue - the top limit.
- *
- * @return
- * 1 - if 'number' is between 'minValue' and 'maxValue'.
- * 0 - otherwise.
- */
-int is_legal_number(int number, int minValue, int maxValue) {
-	return number >= minValue && number <= maxValue;
 }
 
 /**
@@ -129,6 +111,9 @@ int fill_params(char **params, char *string) {
 	string = strtok(NULL, " \t\r\n");
 	while(string && num < 4) {
 		params[num] = (char*) malloc((strlen(string)+1) * sizeof(char));
+		if (params[num] == NULL) {
+			print_system_error(1, "couldn't read parameters");
+		}
 		strcpy(params[num], string);
 		num++;
 		string = strtok(NULL, " \t\r\n");
@@ -239,8 +224,14 @@ int get_invalid_param(int command_name, int num_of_params, char *params[], int a
  * 0 - otherwise
  */
 int get_command(char* command_line, int mode, int args[], char path[], float* threshold, int nXm, int numOfEmptyCells) {
-	char *string = "", **params = (char**)calloc(4,sizeof(char *));
 	int command_name, num_of_params, legal_num_of_params, compare, invalid_param;
+	char *string = NULL;
+	char **params = NULL;
+	params = (char**)calloc(4,sizeof(char *));
+	if (params == NULL) {
+		print_system_error(1, "couldn't read command");
+	}
+	string = "";
 	if (check_if_blank(command_line)==1) {
 		free(params);
 		return FALSE;
@@ -288,6 +279,9 @@ int read_command(int mode, int args[], char path[], float* threshold, int nXm, i
 	printf("Please enter your next command:\n");
 	fflush(stdout);
 	command_line = (char*)malloc((MAX_COMMAND_LENGTH+2)*sizeof(char));
+	if (command_line == NULL) {
+		print_system_error(1, "couldn't read command");
+	}
 	if(fgets(command_line, MAX_COMMAND_LENGTH+2, stdin) == NULL){
 		print_invalid_command_error(1, 0, 0, 0, 0);
 		free(command_line);
