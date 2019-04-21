@@ -8,6 +8,9 @@
 
 list *init_list(BOARD *new_puzzle){
 	list *res = (list*) malloc(sizeof(list));
+	if(res == NULL){
+		print_system_error(1,"Couldn't malloc enough memory for command list");
+	}
 	res->first = NULL;
 	res->current_command = NULL;
 	res->original_board = copy_board(new_puzzle);
@@ -39,9 +42,7 @@ void delete_next_nodes(node *node){
 }
 
 void delete_list(list* s){
-	printf("nir\n");
 	if(s != NULL){
-		printf("nir not empty\n");
 		delete_board(s->original_board);
 		delete_nodes_recursivley(s->first);
 		free(s);
@@ -51,12 +52,16 @@ void delete_list(list* s){
 void add_command(list *s, BOARD *board_after_command, int command_name){
 	node *current_command = s->current_command;
 	node *element = (node*)malloc(sizeof(node));
+	if(element == NULL){
+		print_system_error(1,"Couldn't malloc enough memory for command list node");
+	}
 	switch (command_name) {
 	case Set: element->command = 's'; break;
 	case Autofill: element->command = 'a'; break;
 	case Guess: element->command = 'g'; break;
 	default: element->command = 'n'; /* command is 'generate'*/
 	}
+	element->next=NULL;
 	element->prev = current_command;
 	element->board_after_command = copy_board(board_after_command);
 	if(current_command!=NULL){
@@ -69,58 +74,40 @@ void add_command(list *s, BOARD *board_after_command, int command_name){
 	s->current_command = element;
 	element->next = NULL;
 }
-/*
-node *pop_command(list *s){
-//	node *res = s->current_command;
-	s->current_command = s->current_command->prev;
-//	s->num_of_commands--;
-//	return res;
-	return s->current_command;
-}
 
-node* forward_current_command(list *s){
-//	if(s == NULL){
-//		printf("list wasn't initialized");
-//		assert(0);
-//	}
-//	if(s->current_command == NULL){
-//		printf("list is empty");
-//		return NULL;
-//	}
-//	if(s->current_command->next == NULL){
-//		return NULL;
-//	}
-//	s->current_command = s->current_command->next;
-//	return s->current_command;
-	s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
-	return s->current_command;
-}*/
-
-node* move_in_command_list(list *s, int command_name) {
-	print_list(s, 0);
+int move_in_command_list(list *s,int command_name) {
 	if (command_name == Undo) {
 		if(s->current_command!=NULL){
 			s->current_command = s->current_command->prev;
+			return TRUE;
 		}else{
-			printf("can't undo, board in initial state\n");
+			return FALSE;
 		}
 	}
 	else { /*command is 'redo'*/
-		if(s->current_command->next != NULL){
-			s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
+		if(s->current_command != NULL){
+			if(s->current_command->next != NULL){
+				s->current_command = s->current_command == NULL ? s->first : s->current_command->next;
+				return TRUE;
+			}
+			else{
+				return FALSE;
+			}
 		}
 		else{
-			printf("can't redo, no next commands\n");
+			if(s->first==NULL){
+				return FALSE;
+			}else{
+				s->current_command = s->first;
+				return TRUE;
+			}
 		}
+
 	}
-	print_list(s, 0);
-	return s->current_command;
+	return TRUE;
 }
 
 void print_node(node *node,int with_board){
-//	printf("command:%d\n",node->command);
-//	printf("args are %d %d %d\n",node->args[0],node->args[1],node->args[2]);
-//	printf("threshold is %f\n",node->threshold);
 	if(node == NULL){
 		return;
 	}
@@ -133,11 +120,9 @@ void print_node(node *node,int with_board){
 	}
 	printf("command: %c\n", node->command);
 	printf("|\n|\n\\/\n");
-
 }
 void print_list(list *list, int with_board){
 	if(list==NULL){
-		printf("list is NULL\n");  //remove
 		return;
 	}
 	node *node = list->first;
