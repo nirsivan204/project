@@ -5,7 +5,6 @@
 // *      Author: nir
 // */
 ////#include "MainAux.h"
-#include "Solver.h"
 #include "Game.h"
 #include "Parser.h"
 #include "command_stack.h"
@@ -78,7 +77,7 @@ int current_mode = INIT;
 void file_system_tester(){
 	BOARD *a,*b;
 	load_board("C:/Users/nir/workspace/project/boards/test.txt",&a,&b,3);
-	test_print_board(a,b);
+	//test_print_board(a,b);
 	save_board("C:/Users/nir/workspace/project/boards/test1.txt",a,b,0);
 }
 
@@ -126,8 +125,9 @@ void backtracking_stack_tester(){
 
 void exhust_backtrack_tester(){
 	BOARD *a,*b;
+	int t= 0;
 	load_board("/specific/a/home/cc/students/csguests/nirsivan/Cproject/project/boards/test.txt",&a,&b,3);
-	test_print_board(a,b);
+	print_board(a,b,0,0,&t,&t);
 	printf("res= %d",exhaustive_backtracking(a));
 }
 
@@ -220,7 +220,7 @@ void get_hint_test(){
 }
 
 
-void test_command(){
+/*void test_command(){
 	int i, num_of_commands, commands[] = {Solve, Set, Autofill, Reset, Autofill};
 	BOARD *game_board, *fix_board;
 	int nXm, mode, markErrors, args[3], execute, isValidBoard, isUpdatedBoard, numOfEmptyCells;
@@ -251,7 +251,7 @@ void test_command(){
 			printf("result of execute_command is %d. markErrors = %d, mode = %d, isValidBoard = %d, isUpdatedBoard = %d, numOfEmptyCells = %d, nXm = %d\n", \
 								execute, markErrors, mode, isValidBoard, isUpdatedBoard, numOfEmptyCells, nXm);
 	}
-}
+}*/
 
 void build_and_delete_board_test(){
 	BOARD *board = init_board(5,5);
@@ -342,7 +342,8 @@ int main(){
 	//build_and_delete_board_test();
 	//undo_and_redo_memory_test();
 	//backtracking_memory_test();
-	save_and_load_memory_test();
+	//save_and_load_memory_test();
+	exhust_backtrack_tester();
 	return 0;
 }
 

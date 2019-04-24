@@ -19,8 +19,6 @@
 #ifndef BOARDHANDLER_H_
 #define BOARDHANDLER_H_
 
-//#define N 3 /*num of rows in a block*/
-//#define M 3 /*num of cols in a block*/
 typedef struct bl {/*BLOCK is a M X N matrix of integers*/
 	int N, M, **values;
 }BLOCK;
@@ -30,11 +28,24 @@ typedef struct bo{ /*BOARD is a N X M matrix of BLOCKs*/
 	BLOCK*** blocks;
 	char line_seperator[1024];/*the separator row for printing*/
 }BOARD;
-BOARD* init_board(int N, int M);
+
+/*
+ * this function initializes two empty boards with N rows and M columns of blocks.
+ *
+ * @param board1 - address to put the first empty board.
+ * @param board2 - address to put the second empty board.
+ *
+ * @param N - # of rows of blocks.
+ * @param M - # of cols of blocks.
+ *
+ */
 void init_boards(BOARD** board1, BOARD** board2, int N, int M);
 
-void delete_block(BLOCK* block);
-
+/*
+ * this function releasing all the memory allocated for a board.
+ *
+ * @param board - the board needed to be deleted.
+ */
 void delete_board(BOARD* board);
 
 /*
@@ -58,10 +69,40 @@ int get_element_from_board(BOARD *board, int x,int y);
 void set_element_to_board(BOARD *board, int x,int y,int z);
 
 
-
+/*
+ * checks if this column in board contains z
+ * @param board - the board of interest.
+ * @param column- the column to check
+ * @param z     - the value check
+ * @return
+ * 1 - if the column doesnt have the value z
+ * 0 - otherwise
+ */
 int is_valid_column(BOARD *board,int column,int z);
+
+
+/*
+ * checks if this row in board contains z
+ * @param board - the board of interest.
+ * @param row   - the column to check
+ * @param z     - the value check
+ * @return
+ * 1 - if the row doesn't have the value z
+ * 0 - otherwise
+ */
 int is_valid_row(BOARD *board,int row,int z);
+
+/*
+ * checks if this block contains z
+ * @param block - the board of interest.
+ * @param z     - the value check
+ * @return
+ * 1 - if the blcok doesn't have the value z
+ * 0 - otherwise
+ */
 int is_valid_block(BLOCK *block,int z);
+
+
 
 int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z);
 
@@ -76,8 +117,6 @@ int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z);
  */
 int is_valid_insertion(BOARD *board,int x,int y,int z);
 
-void update_erroneous_cells(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard);
-
 int is_valid_board(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard);
 
 /*
@@ -90,11 +129,9 @@ void print_board(BOARD *board, BOARD *fixed_board, int mark_errors, int mode, in
 
 /*this function is copying all the cells' value of one board to another board.
  * @param in_board  - the board needed to be copied.
- * @param out_board - the board that will be a copy of in_board after the function call
+ * @return - the board that is a copy of in_board
  *
  */
 BOARD *copy_board(BOARD *in_board);
 
-void print_block(BLOCK *block);
-void set_element_to_block(BLOCK *block, int x, int y, int z);
 #endif /* BOARDHANDLER_H_ */

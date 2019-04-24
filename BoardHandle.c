@@ -1,5 +1,14 @@
 #include "BoardHandle.h"
 
+/*
+ * this function initializes an empty block with M rows and N columns of elements, and returns it.
+ *
+ *
+ * @param N - # of cols of elements.
+ * @param M - # of rows of elements.
+ * @return the empty block.
+ *
+ */
 BLOCK* init_block(int N, int M) {
 	BLOCK* result;
 	int i = 0;
@@ -22,11 +31,24 @@ BLOCK* init_block(int N, int M) {
 	return result;
 }
 
+/*
+ * this function initializes an empty board with N rows and M columns of blocks, and returns it.
+ *
+ *
+ * @param N - # of rows of blocks.
+ * @param M - # of cols of blocks.
+ * @return the empty board.
+ *
+ */
+
 BOARD* init_board(int N, int M) {
 	BOARD* result;
 	int i = 0;
 	int j = 0;
 	result = (BOARD*)malloc(sizeof(BOARD));
+	if (result == NULL) {
+		print_system_error(1, "couldn't build board");
+	}
 	result->M = M;
 	result->N = N;
 	result->blocks = (BLOCK***)malloc(sizeof(BLOCK**)*N);
@@ -52,15 +74,20 @@ BOARD* init_board(int N, int M) {
 	result->line_seperator[i+1]='\0';
 	return result;
 }
-
+/*
+ * this function defined in the .h file.
+ */
 void init_boards(BOARD** board1, BOARD** board2, int N, int M) {
 	*board1 = init_board(N,M);
 	*board2 = init_board(N,M);
 }
-
+/*
+ * this function releasing all the memory allocated for a block.
+ *
+ * @param block - the block needed to be deleted.
+ */
 void delete_block(BLOCK* block) {
 	if(block == NULL){
-		printf("block is not initialized");
 		return;
 	}
 	int i = 0;
@@ -70,10 +97,11 @@ void delete_block(BLOCK* block) {
 	free(block->values);
 	free(block);
 }
-
+/*
+ * this function defined in the .h file.
+ */
 void delete_board(BOARD* board) {
 	if(board == NULL){
-		printf("board is NULL\n");
 		return;
 	}
 	int i = 0;
@@ -99,7 +127,9 @@ void delete_board(BOARD* board) {
 int get_element_from_block(BLOCK *block, int x, int y){ /*returning the element that in block, at cell <x,y>*/
 	return block->values[y%block->M][x%block->N];
 }
-
+/*
+ * this function defined in the .h file.
+ */
 int get_element_from_board(BOARD *board, int x,int y){/*returning the element that in board, at cell <x,y>*/
 	return get_element_from_block(board->blocks[y/board->M][x/board->N],x,y);
 }
@@ -123,16 +153,10 @@ void set_element_to_board(BOARD *board, int x,int y,int z){/*setting the element
 	set_element_to_block(board->blocks[y/board->M][x/board->N],x,y,z);
 }
 
-/*
- * checks if this column in board contains z
- * @param board - the board of interest.
- * @param column- the column to check
- * @param z     - the value check
- * @return
- * 1 - if the column doesnt have the value z
- * 0 - otherwise
- */
 
+/*
+ * this function defined in the .h file.
+ */
 int is_valid_column(BOARD *board,int column,int z){/*checks if this column in  board contains z*/
 	int index;
 	for (index = 0; index < board->N*board->M; index++){/*for each row*/
@@ -144,13 +168,7 @@ int is_valid_column(BOARD *board,int column,int z){/*checks if this column in  b
 }
 
 /*
- * checks if this row in board contains z
- * @param board - the board of interest.
- * @param row   - the column to check
- * @param z     - the value check
- * @return
- * 1 - if the row doesn't have the value z
- * 0 - otherwise
+ * this function defined in the .h file.
  */
 int is_valid_row(BOARD *board,int row,int z) {/*checks if this row in  board contains z*/
 	int index;
@@ -163,12 +181,7 @@ int is_valid_row(BOARD *board,int row,int z) {/*checks if this row in  board con
 }
 
 /*
- * checks if this block contains z
- * @param block - the board of interest.
- * @param z     - the value check
- * @return
- * 1 - if the blcok doesn't have the value z
- * 0 - otherwise
+ * this function defined in the .h file.
  */
 int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains z*/
 	int index_col, index_row;
@@ -189,7 +202,9 @@ int is_valid_block(BLOCK *block,int z){/*checks if this block in  board contains
 int is_valid_insertion_to_empty_cell(BOARD *board,int x,int y,int z) {
 	return is_valid_column(board,x,z) && is_valid_row(board,y,z) && is_valid_block(board->blocks[y/board->M][x/board->N],z);
 }
-
+/*
+ * this function defined in the .h file.
+ */
 int is_valid_insertion(BOARD *board,int x,int y,int z) { /*returns if z can be set in an empty cell <x,y> in board*/
 	int val, is_valid;
 	if (z == 0) {
@@ -204,7 +219,9 @@ int is_valid_insertion(BOARD *board,int x,int y,int z) { /*returns if z can be s
 	}
 	return is_valid_insertion_to_empty_cell(board,x,y,z);
 }
-
+/*
+ * this function defined in the .h file.
+ */
 void update_erroneous_cells(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard) {
 	int i,j,status;
 	if (*isUpdatedBoard == FALSE) {
@@ -228,7 +245,9 @@ void update_erroneous_cells(BOARD *board, BOARD *fixed_board, int* isValidBoard,
 		*isUpdatedBoard = TRUE;
 	}
 }
-
+/*
+ * this function defined in the .h file.
+ */
 int is_valid_board(BOARD *board, BOARD *fixed_board, int* isValidBoard, int* isUpdatedBoard) {
 	update_erroneous_cells(board, fixed_board, isValidBoard, isUpdatedBoard);
 	return *isValidBoard;
@@ -313,7 +332,7 @@ void print_board(BOARD *board, BOARD *fixed_board,int mark_errors,int mode, int*
 
 /*this function is copying all the cells' value of one block to another block.
  * @param in_block - the block needed to be copied.
- * @param out_block - the block that will be a copy of in_board after the function call
+ * @return the block that is a copy of in_board
  *
  */
 BLOCK *copy_Block(BLOCK *in_block){ /*return a copy of in_block*/
