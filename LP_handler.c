@@ -190,7 +190,7 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 			for(k = 1; k<=nXm; k++){
 				map_index = map[row_offset+col_offset+k-1];
 				if(map_index>-1){
-					printf("i=%d j=%d k=%d score = %f\n",i,j,k,sol[map_index]);
+					//printf("i=%d j=%d k=%d score = %f\n",i,j,k,sol[map_index]);
 					if(sol[map_index] >= threshold){
 						if(is_valid_insertion_to_empty_cell(board,j,i,k)){
 							legal_scores_array[num_of_legal_values] = sol[map_index];
@@ -201,9 +201,9 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 				}
 			}
 			if(num_of_legal_values > 0){
-				printf("num_of_legal_values = %d\n",num_of_legal_values);
+				//printf("num_of_legal_values = %d\n",num_of_legal_values);
 				val = choose_value_by_probability(legal_scores_array,legal_values_array,num_of_legal_values);
-				printf("val = %d\n",val);
+				//printf("val = %d\n",val);
 				set_element_to_board(board,j,i,val);
 			}else{
 				if (map_index != -1) {
@@ -232,194 +232,173 @@ void get_hint(int *map,double *sol, int x,int y,int nXm,int nXm_square,double *s
 	}
 }
 
+void make_new_model(GRBenv **env,GRBmodel **model,char *error_string){
+	int error = GRBloadenv(env, "mip1.log");/* Create environment - log file is mip1.log */
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(*env));
+	  print_system_error(2,error_string);
+	}
+	error = GRBsetintparam(*env, GRB_INT_PAR_LOGTOCONSOLE, 0);
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(*env));
+	  print_system_error(2,error_string);
+	}
+	error = GRBnewmodel(*env, model, "mip1", 0, NULL, NULL, NULL, NULL, NULL);/*Create an empty model named "mip1"*/
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(*env));
+	  print_system_error(2,error_string);
+	}
+}
+
+void initialize_model(GRBenv *env,GRBmodel *model,char *error_string,char *vtype,double *obj,double *val,int num_of_var){
+	int error = GRBaddvars(model, num_of_var, 0, NULL, NULL, NULL, obj, NULL, val, vtype, NULL); /* add variables to model */
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
+	  printf("nir");
+	  print_system_error(2,error_string);
+	}
+	error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);/* Change objective sense to maximization*/
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
+	  print_system_error(2,error_string);
+	}
+	error = GRBupdatemodel(model);/*   update the model - to integrate new variables*/
+	if (error) {
+	  sprintf(error_string,"ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
+	  print_system_error(2,error_string);
+	}
+}
+
+
+void initialize_arrays_for_gurobi(char *vtype,double *obj,double *val,int num_of_var,int is_binary,int nXm){
+	int i;
+	for(i=0;i<num_of_var;i++){  /* variable types - for xijk */
+	  	  if(is_binary){
+	  		  obj[i] = 1;
+	  		  vtype[i] = GRB_BINARY;
+	  	  }
+	  	  else{
+	  		  obj[i] = get_rand_number(nXm)+1;
+	  		  vtype[i] = GRB_CONTINUOUS;
+	  	  }
+	  	  val[i] = 1;
+	  }
+}
+
+void constraint_helper(GRBmodel *model,GRBenv *env,BOARD *board,int *map,int k, int *ind,double *val,int nXm, int nXm_square, int row_col_or_cell,char *error_string){
+	int i ,constraint_len ,error = 0;
+	char *type;
+	for(i=0;i<nXm;i++){
+		if(row_col_or_cell == 1){
+			constraint_len = row_constraint(board,map,i,k,ind,nXm,nXm_square);
+			type = "row";
+		}
+		if(row_col_or_cell == 2){
+			constraint_len = col_constraint(board,map,i,k,ind,nXm,nXm_square);
+			type = "col";
+		}
+		if(row_col_or_cell == 3){
+			constraint_len = cell_constraint(board,map,i,k,ind,nXm,nXm_square);
+			type = "cell";
+		}
+
+		if(constraint_len>0){
+			error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+			if (error) {
+				if(row_col_or_cell == 3){
+					sprintf(error_string,"ERROR %d GRBaddconstr() for cell (%d,%d): %s\n", error,i,k,GRBgeterrormsg(env));
+				}
+				else{
+					sprintf(error_string,"ERROR %d GRBaddconstr() for %s %d, digit %d: %s\n", error,type,i,k,GRBgeterrormsg(env));
+				}
+				print_system_error(2,error_string);
+			}
+		}
+	}
+}
+
+void put_constraints_in_model(GRBmodel *model,GRBenv *env,BOARD *board,int *map, int *ind,double *val,int nXm, int nXm_square){
+	int i,j,k,constraint_len = 0,error = 0;
+	char error_string[1000];
+	for (k=1;k<=nXm;k++){
+		constraint_helper(model,env,board,map,k,ind,val,nXm,nXm_square,1,error_string);
+		constraint_helper(model,env,board,map,k,ind,val,nXm,nXm_square,2,error_string);
+		constraint_helper(model,env,board,map,k-1,ind,val,nXm,nXm_square,3,error_string);
+		for(i=0;i<board->N;i++){
+			for(j=0;j<board->M;j++){
+				constraint_len = block_constraint(board,map,i,j,k,ind,nXm,nXm_square);
+				if(constraint_len>0){
+					error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
+					if (error) {
+						sprintf(error_string,"ERROR %d GRBaddconstr() for block (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
+						print_system_error(2,error_string);
+					}
+				}
+			}
+		}
+	}
+}
+
+void optimize_model(GRBmodel *model,GRBenv *env,char *error_string){
+	int error = GRBoptimize(model);/* Optimize model - need to call this before calculation */
+	if (error) {
+		sprintf(error_string,"ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
+		print_system_error(2,error_string);
+	}
+	error = GRBwrite(model, "mip1.lp");/*Write model to 'mip1.lp' - this is not necessary but very helpful*/
+	if (error) {
+		sprintf(error_string,"ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
+		print_system_error(2,error_string);
+	}
+}
+
 int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 {
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
-  int       error = 0,res;
+  int       error = 0, optimstatus = 0, constraint_len = 0,res;
+  char 		error_string[1000];
+  int 		i,j,k,nXm = board->M*board->N;
+  int 		nXm_square = nXm*nXm;
   int       *ind = (int*)malloc(board->N*board->M*sizeof(int));
   double    *val = (double*)malloc(num_of_var*sizeof(double));
   double    *obj = (double*)malloc(num_of_var*sizeof(double));
   char      *vtype = (char*)malloc(num_of_var*sizeof(char));
-  int       optimstatus = 0;
   double    objval = 0;
-  int i,j,k;
-  int nXm = board->M*board->N;
-  int nXm_square = nXm*nXm;
-  int constraint_len = 0;
   if(ind==NULL || val == NULL ||obj ==NULL || vtype==NULL){
 	  print_system_error(1,"error in allocating memory for gurobi arrays");
   }
-//  /* Create environment - log file is mip1.log */
-  error = GRBloadenv(&env, "mip1.log");
+  make_new_model(&env,&model,error_string);
+  initialize_arrays_for_gurobi(vtype,obj,val,num_of_var,is_binary,nXm);
+  initialize_model(env,model,error_string,vtype,obj,val,num_of_var);
+  put_constraints_in_model(model,env,board,map,ind,val,nXm,nXm_square);
+  optimize_model(model,env,error_string);
+  error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);/*   Get solution information*/
   if (error) {
-	  printf("ERROR %d GRBloadenv(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
+	  sprintf(error_string,"ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
+	  print_system_error(2,error_string);
   }
-
-  error = GRBsetintparam(env, GRB_INT_PAR_LOGTOCONSOLE, 0);
-  if (error) {
-	  printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-  /*Create an empty model named "mip1"*/
-  error = GRBnewmodel(env, &model, "mip1", 0, NULL, NULL, NULL, NULL, NULL);
-  if (error) {
-	  printf("ERROR %d GRBnewmodel(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-//  /* Add variables */
-//
-//
-
-  /* variable types - for xijk */
-  /* other options: GRB_INTEGER, GRB_CONTINUOUS */
-  for(i=0;i<num_of_var;i++){
-  	  if(is_binary){
-  		  vtype[i] = GRB_BINARY;
-  	  }
-  	  else{
-  		  obj[i] = get_rand_number(nXm)+1;
-  		  vtype[i] = GRB_CONTINUOUS;
-  	  }
-  	  val[i] = 1;
-  }
-  print_array_double(obj,num_of_var);
-
-  /* add variables to model */
-  error = GRBaddvars(model, num_of_var, 0, NULL, NULL, NULL, obj, NULL, val, vtype, NULL); // val is also upper bound of 1
-  if (error) {
-	  printf("ERROR %d GRBaddvars(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-/* Change objective sense to maximization*/
-  error = GRBsetintattr(model, GRB_INT_ATTR_MODELSENSE, GRB_MAXIMIZE);
-  if (error) {
-	  printf("ERROR %d GRBsetintattr(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-///*   update the model - to integrate new variables*/
-
-  error = GRBupdatemodel(model);
-  if (error) {
-	  printf("ERROR %d GRBupdatemodel(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-  for (k=1;k<=nXm;k++){
-	  for(i=0;i<nXm;i++){
-		  constraint_len = row_constraint(board,map,i,k,ind,nXm,nXm_square);
-		  if(constraint_len>0){
-			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
-			  if (error) {
-				  printf("ERROR %d GRBaddconstr() for row %d, digit %d: %s\n", error,i,k,GRBgeterrormsg(env));
-				  return -1;
-			  }
-		  }
-		  //print_array(ind,constraint_len);
-	  }
-	  for(j=0;j<nXm;j++){
-		  constraint_len = col_constraint(board,map,j,k,ind,nXm,nXm_square);
-		  //print_array(ind,constraint_len);
-		  if(constraint_len>0){
-			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
-			  if (error) {
-				  printf("ERROR %d GRBaddconstr() for col %d, digit %d: %s\n", error,j,k,GRBgeterrormsg(env));
-				  return -1;
-			  }
-		  }
-
-	  }
-
-  }
-  for(i=0;i<nXm;i++){
-	  for(j=0;j<nXm;j++){
-		  constraint_len = cell_constraint(board,map,i,j,ind,nXm,nXm_square);
-		  if(constraint_len>0){
-			  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
-			  if (error) {
-				  printf("ERROR %d GRBaddconstr() for cell (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
-				  return -1;
-			  }
-		  }
-  	  }
-  }
-  for(i=0;i<board->N;i++){
-	  for(j=0;j<board->M;j++){
-		  for(k=1;k<=nXm;k++){
-			  constraint_len = block_constraint(board,map,i,j,k,ind,nXm,nXm_square);
-			  //print_array(ind,constraint_len);
-			  if(constraint_len>0){
-				  error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
-				  if (error) {
-					  printf("ERROR %d GRBaddconstr() for block (%d,%d): %s\n", error,j,i,GRBgeterrormsg(env));
-					  return -1;
-				  }
-			  }
-		  }
-	  }
-  }
-//  /* Optimize model - need to call this before calculation */
-  error = GRBoptimize(model);
-  if (error) {
-	  printf("ERROR %d GRBoptimize(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-/*   Write model to 'mip1.lp' - this is not necessary but very helpful*/
-  error = GRBwrite(model, "mip1.lp");
-  if (error) {
-	  printf("ERROR %d GRBwrite(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-/*   Get solution information*/
-
-  error = GRBgetintattr(model, GRB_INT_ATTR_STATUS, &optimstatus);
-  if (error) {
-	  printf("ERROR %d GRBgetintattr(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-/*   get the objective -- the optimal result of the function*/
   error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
+    if (error) {
+  	  //printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
+  	  return -1;
+    }
+  error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, num_of_var, sol);/*   get the solution - the assignment to each variable*/
   if (error) {
-	  printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
+	  //sprintf(error_string,"ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
+	  //print_system_error(2,error_string);
 	  return -1;
   }
-
-/*   get the solution - the assignment to each variable*/
-/*   number of variables, the size of "sol" should match*/
-  error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, num_of_var, sol);
-  if (error) {
-	  printf("ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-	  return -1;
-  }
-
-/*   print results*/
-  printf("\nOptimization complete\n");
-
-/*   solution found*/
-  if (optimstatus == GRB_OPTIMAL) {
-	  printf("Optimal objective: %.4e\n", objval);
+  if (optimstatus == GRB_OPTIMAL) {/*   solution found*/
 	  res = TRUE;
   }
-/*   no solution found*/
-  else if (optimstatus == GRB_INF_OR_UNBD) {
-	  printf("Model is infeasible or unbounded\n");
-	  res = 0;
+  else if (optimstatus == GRB_INF_OR_UNBD) {/* Model is infeasible or unbounded, no solution found*/
+	  res = FALSE;
   }
-/*   error or calculation stopped*/
-  else {
-	  printf("Optimization was stopped early\n");
+  else {/*error or calculation stopped*/
 	  res = -1;
+	  //print_system_error(2,"Optimization was stopped early");
   }
-
-/*   IMPORTANT !!! - Free model and environment*/
   GRBfreemodel(model);
   GRBfreeenv(env);
   free(ind);

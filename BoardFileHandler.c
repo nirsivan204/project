@@ -6,6 +6,17 @@
  */
 #include "BoardFileHandler.h"
 
+/*
+ * This function is getting a file descriptor,
+ * and skipping all the white spaces it encountered,
+ * until getting to a char that is not a white space.
+ *
+ * @param file - the file descriptor needed to be parsed.
+ *
+ * @return the first char that is not a white space;
+ *
+ */
+
 char ignore_white_spaces_in_file(FILE *file){
 	char res = fgetc(file);
 	while(is_white_space(res)){
@@ -15,9 +26,23 @@ char ignore_white_spaces_in_file(FILE *file){
 	return res;
 }
 
+/*
+ * This function is getting a file descriptor,
+ * and parsing it to find the next legal number in line.
+ * if it not a legal number, it return an error. the number should be between 0 and N*M, else its an error;
+ *
+ * @param file - the file descriptor needed to be parsed.
+ * @param z - the number it read.
+ * @param is_fixed - if the number is followed by a dot, at the end of successful run it will be assigned to TRUE, else FALSE;
+ * @param N - number of cols in a block.
+ * @param M - number of rows in a block.
+ * @return FALSE if an error has occurred, TRUE else.
+ *
+ */
+
 int read_next_element(FILE *file,int *z,int *is_fixed,int N,int M){
 	char c = ignore_white_spaces_in_file(file);
-	*is_fixed = 0;
+	*is_fixed = FALSE;
 	*z = 0;
 	if(!isdigit(c)){
 		print_invalid_file_error(3);
@@ -32,7 +57,7 @@ int read_next_element(FILE *file,int *z,int *is_fixed,int N,int M){
 		return FALSE;
 	}
 	if(c == '.'){
-		*is_fixed = 1;
+		*is_fixed = TRUE;
 	}else{
 		if(!is_white_space(c)){
 			print_invalid_file_error(3);
@@ -41,12 +66,6 @@ int read_next_element(FILE *file,int *z,int *is_fixed,int N,int M){
 	}
 	return TRUE;
 }
-
-int close_file(FILE *file, int boolean) {
-	fclose(file);
-	return boolean;
-}
-
 
 int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	FILE *file = NULL;
@@ -58,15 +77,18 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	}
 	if(fscanf(file,"%d %d",&N,&M)<0){
 		print_invalid_file_error(3);
-		return close_file(file, FALSE);
+		fclose(file);
+		return FALSE;
 	}
 	init_boards(board, fix_board, N, M);
 	(fgetc(file));
 	for(y=0;y<M*N;y++){
 		for(x=0;x<N*M;x++){
 			if (!read_next_element(file,&z,&is_fixed,N,M)) {
-				//delete_boards(*board, *fix_board);
-				return close_file(file, FALSE);
+				delete_board(*board);
+				delete_board(*fix_board);
+				fclose(file);
+				return FALSE;
 			}
 			set_element_to_board(*board,x,y,z);
 			if (command_name == Solve) {
@@ -75,7 +97,8 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 		}
 		fscanf(file,"\n");
 	}
-	return close_file(file, TRUE);
+	fclose(file);
+	return TRUE;
 }
 
 int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
@@ -101,6 +124,7 @@ int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
 		}
 		fprintf(file,"\n");
 	}
-	return close_file(file, TRUE);
+	fclose(file);
+	return TRUE;
 }
 

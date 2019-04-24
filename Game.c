@@ -382,33 +382,27 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 		print_system_error(1,"error in allocating memory for scores");
 	}
 	gurobi_result = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
-	if (gurobi_result == TERMINATE) {
-		print_system_error(2,NULL);
-		isExecuted = TERMINATE;
-	}
-	else {
-		isSolvable = gurobi_result == TRUE && put_sol_in_board(solution_board,map,sol,nXm,nXm_square,threshold) == TRUE;
-		switch (command) {
-		case Guess: update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard); break;
-		case Validate: validate(isSolvable); break;
-		default:
-			if (!validate_move(isSolvable,2,0,0,command)) {
-				isExecuted = FALSE;
-				break;
-			}
-			/* else - solution_board contains a correct solution for board: */
-			switch (command) {
-			case Hint: hint(solution_board, x, y); break;
-			case Guess_hint: guess_hint(map, sol, x, y, nXm, nXm_square); break;
-			case Save: break;
-			default: /* command is 'generate' */
-				isExecuted = generate(board, solution_board, x, y, numOfEmptyCells, nXm, nXm_square);
-				if (isExecuted == TRUE) {
-					update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
-				}
-			}
-
+	isSolvable = gurobi_result == TRUE && put_sol_in_board(solution_board,map,sol,nXm,nXm_square,threshold) == TRUE;
+	switch (command) {
+	case Guess: update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard); break;
+	case Validate: validate(isSolvable); break;
+	default:
+		if (!validate_move(isSolvable,2,0,0,command)) {
+			isExecuted = FALSE;
+			break;
 		}
+		/* else - solution_board contains a correct solution for board: */
+		switch (command) {
+		case Hint: hint(solution_board, x, y); break;
+		case Guess_hint: guess_hint(map, sol, x, y, nXm, nXm_square); break;
+		case Save: break;
+		default: /* command is 'generate' */
+			isExecuted = generate(board, solution_board, x, y, numOfEmptyCells, nXm, nXm_square);
+			if (isExecuted == TRUE) {
+				update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
+			}
+		}
+
 	}
 	delete_board(solution_board);
 	free(sol);
