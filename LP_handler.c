@@ -213,8 +213,6 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 			num_of_legal_values = 0;
 		}
 	}
-	int r = 0;
-	print_board(board,board,0,0,&r,&r);
 	free(legal_scores_array);
 	free(legal_values_array);
 	return res;
@@ -382,13 +380,14 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
   }
   error = GRBgetdblattr(model, GRB_DBL_ATTR_OBJVAL, &objval);
     if (error) {
-  	  printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
+  	  //printf("ERROR %d GRBgettdblattr(): %s\n", error, GRBgeterrormsg(env));
   	  return -1;
     }
   error = GRBgetdblattrarray(model, GRB_DBL_ATTR_X, 0, num_of_var, sol);/*   get the solution - the assignment to each variable*/
   if (error) {
-	  sprintf(error_string,"ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
-	  print_system_error(2,error_string);
+	  //sprintf(error_string,"ERROR %d GRBgetdblattrarray(): %s\n", error, GRBgeterrormsg(env));
+	  //print_system_error(2,error_string);
+	  return -1;
   }
   if (optimstatus == GRB_OPTIMAL) {/*   solution found*/
 	  res = TRUE;
@@ -397,7 +396,8 @@ int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *sol)
 	  res = FALSE;
   }
   else {/*error or calculation stopped*/
-	  print_system_error(2,"Optimization was stopped early");
+	  res = -1;
+	  //print_system_error(2,"Optimization was stopped early");
   }
   GRBfreemodel(model);
   GRBfreeenv(env);
