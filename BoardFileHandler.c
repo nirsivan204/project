@@ -87,8 +87,6 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	for(y=0;y<M*N;y++){
 		for(x=0;x<N*M;x++){
 			if (!read_next_element(file,&z,&is_fixed,N,M)) {
-				delete_board(*board);
-				delete_board(*fix_board);
 				fclose(file);
 				return FALSE;
 			}

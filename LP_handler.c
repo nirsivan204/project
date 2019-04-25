@@ -1,51 +1,46 @@
 #include "LP_handler.h"
 /*
  * This function fills the map with -1 for variables
- * that will not be mapped because they are not legal in this row.
- * (the row that the row_offset represents)
+ * that will not be mapped because they are not legal in the row i.
  *
  * @param map - the map it is building.
- * @param row_offset - for each row in board, we have certain places in map, so this is the offset. (see map function)
+ * @param i - the row in board. we have certain places in map(see map function)
  * @param k - the digit that is already in the row.
- * @param nXm - N*M (dimensions of board).
  */
-void mark_row(int *map,int row_offset,int k,int nXm){
+void mark_row(large_array_struct *map,int i,int k){
 	int j;
-	for(j=0;j<nXm;j++){
-		map[row_offset + nXm*j + k-1] = -1;
+	for(j=0;j<map->nXm;j++){
+		set_int_in_large_array(map,i,j,k-1,-1);
 	}
 }
 /*
  * This function fills the map with -1 for variables
- * that will not be mapped because they are not legal in this col.
- * (the col that the col_offset represents)
+ * that will not be mapped because they are not legal in this col j.
  *
  * @param map - the map it is building.
- * @param col_offset - for each col in board, we have certain places in map, so this is the offset. (see map function)
+ * @param j - the col in board. we have certain places in map(see map function)
  * @param k - the digit that is already in the col.
- * @param nXm - N*M (dimensions of board).
  */
-void mark_col(int *map,int col_offset,int k,int nXm,int nXm_square){
+void mark_col(large_array_struct *map,int j,int k){
 	int i;
-	for(i=0;i<nXm;i++){
-		map[nXm_square*i + col_offset + k-1] = -1;
+	for(i=0;i<map->nXm;i++){
+		set_int_in_large_array(map,i,j,k-1,-1);
 	}
 }
 
 /*
  * This function fills the map with -1 for variables
  * that will not be mapped because their cell is already occupied.
- * (the cell that corresponds to the col and row that the col_offset and row_offset represents)
+ * (the cell <j,i>)
  *
  * @param map - the map it is building.
- * @param row_offset - for each row in board, we have certain places in map, so this is the offset. (see map function)
- * @param col_offset - for each col in board, we have certain places in map, so this is the offset. (see map function)
- * @param nXm - N*M (dimensions of board).
+ * @param i - the row in board. we have certain places in map(see map function)
+ * @param j - the col in board. we have certain places in map(see map function)
  */
-void mark_cell(int *map,int row_offset,int col_offset,int nXm){
+void mark_cell(large_array_struct *map,int i,int j){
 	int k;
-	for(k=0;k<nXm;k++){
-		map[row_offset + col_offset + k] = -1;
+	for(k=0;k<map->nXm;k++){
+		set_int_in_large_array(map,i,j,k,-1);
 	}
 }
 
@@ -60,23 +55,19 @@ void mark_cell(int *map,int row_offset,int col_offset,int nXm){
  * @param k - the digit that is already in this block.
  * @param n - N (dimensions of board).
  * @param m - M (dimensions of board).
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  */
-void mark_block(int *map,int row,int col, int k,int n,int m,int nXm,int nXm_square){
+void mark_block(large_array_struct *map,int row,int col, int k,int n,int m){
 	int first_row_of_block = (row/m)*m;
 	int first_col_of_block = (col/n)*n;
-	int row_offset,col_offset;
 	int i,j;
 	for(i=0;i<m;i++){
-		row_offset = (first_row_of_block+i)*nXm_square;
 		for (j=0;j<n;j++){
-			col_offset = (first_col_of_block+j)*nXm;
-			map[row_offset+col_offset+k-1] = -1;
+			set_int_in_large_array(map,i+first_row_of_block,j+first_col_of_block,k-1,-1);
 		}
 	}
 
 }
+
 
 /*
  * The map is an array of (NXM)^3 indexes, that will map the right vars into the vars array. We define the variable Xijk as the probability for the event that cell <j,i> will have the value k.
@@ -84,10 +75,7 @@ void mark_block(int *map,int row,int col, int k,int n,int m,int nXm,int nXm_squa
  * If we know that this Xijk for certain i,j,k is zero (e.g. this i row already has the digit k),
  * we want to ignore him. so our map will not map him to the vars array, and will give him the index -1.
  * else, we will give him his index in the vars array.
- * the place of the index for Xijk in the map, is: i*(N*M)^2 + j*(N*M) + (k-1)
- *													  ^           ^
- *													  |           |
- *												  row_offset col_offset
+ * the place of the index for Xijk in the map, is: map[i][j][k-1]
  *
  * The map maker will run on all cells, and if it finds a non-empty cell, it will mark all the vars that will not be mapped with -1.
  * Afterwards, it will run on the map it built until now, and will give every legal variable its place in the vars array.
@@ -95,30 +83,32 @@ void mark_block(int *map,int row,int col, int k,int n,int m,int nXm,int nXm_squa
  *
  * @param board - the board we want to build the map for.
  * @param map - the map it is building.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
+ *
+ * @return number of variables mapped.
  */
-int map_maker(BOARD *board,int *map, int nXm,int nXm_square){//assuming map is only zeros
-	int i,j,k;
+int map_maker(BOARD *board,large_array_struct *map){//assuming map is only zeros
+	int i,j,k,index;
 	int num_of_var = 0;
-	int row_offset,col_offset;
-	for(i=0;i<nXm;i++){
-		row_offset = i*nXm_square;
-		for(j=0;j<nXm;j++){
-			col_offset = j*nXm;
+	for(i=0;i<map->nXm;i++){
+		for(j=0;j<map->nXm;j++){
 			k=get_element_from_board(board,j,i);
 			if(k!=0){
-				mark_row(map,row_offset,k,nXm);
-				mark_col(map,col_offset,k,nXm,nXm_square);
-				mark_cell(map,row_offset,col_offset,nXm);
-				mark_block(map,i,j,k,board->N,board->M,nXm,nXm_square);
+				mark_row(map,i,k);
+				mark_col(map,j,k);
+				mark_cell(map,i,j);
+				mark_block(map,i,j,k,board->N,board->M);
 			}
 		}
 	}
-	for(i=0;i<nXm*nXm_square;i++){
-		if(map[i]!=-1){
-			map[i] = num_of_var;
-			num_of_var++;
+	for(i=0;i<map->nXm;i++){
+		for(j=0;j<map->nXm;j++){
+			for(k=0;k<map->nXm;k++){
+				index = get_int_from_large_array(map,i,j,k);
+				if(index != -1){
+					set_int_in_large_array(map,i,j,k,num_of_var);
+					num_of_var++;
+				}
+			}
 		}
 	}
 	return num_of_var;
@@ -135,19 +125,16 @@ int map_maker(BOARD *board,int *map, int nXm,int nXm_square){//assuming map is o
  * @param row - the index of the row we want to build the constraint for.
  * @param digit - the digit we want to build the constraint for.
  * @param ind - the array that will represent the constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  *
  * @return number of non zero coefficients in this constraint.
  */
-int row_constraint(BOARD *board, int *map, int row, int digit,int *ind, int nXm, int nXm_square){
+int row_constraint(BOARD *board, large_array_struct *map, int row, int digit,int *ind){
 	int j=0;
-	int row_index = nXm_square*row;
 	int map_index;
 	int counter = 0;
 	if(is_valid_row(board,row,digit)){
-		for (;j<nXm;j++){
-			map_index = map[row_index+nXm*j+digit-1];
+		for (;j<map->nXm;j++){
+			map_index = get_int_from_large_array(map,row,j,digit-1);
 			if(map_index!=-1){
 				ind[counter] = map_index;
 				counter++;
@@ -166,19 +153,16 @@ int row_constraint(BOARD *board, int *map, int row, int digit,int *ind, int nXm,
  * @param col - the index of the col we want to build the constraint for.
  * @param digit - the digit we want to build the constraint for.
  * @param ind - the array that will represent the constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  *
  * @return number of non zero coefficients in this constraint.
  */
-int col_constraint(BOARD *board,int *map, int col, int digit,int *ind, int nXm, int nXm_square){
+int col_constraint(BOARD *board,large_array_struct *map, int col, int digit,int *ind){
 	int i=0;
-	int col_index = nXm*col;
 	int map_index;
 	int counter = 0;
 	if(is_valid_column(board,col,digit)){
-		for (;i<nXm;i++){
-			map_index = map[nXm_square*i+col_index+digit-1];
+		for (;i<map->nXm;i++){
+			map_index = get_int_from_large_array(map,i,col,digit-1);
 			if(map_index!=-1){
 				ind[counter] = map_index;
 				counter++;
@@ -197,20 +181,16 @@ int col_constraint(BOARD *board,int *map, int col, int digit,int *ind, int nXm, 
  * @param row - the index of the row we want to build the constraint for.
  * @param col - the index of the col we want to build the constraint for.
  * @param ind - the array that will represent the constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  *
  * @return number of non zero coefficients in this constraint.
  */
-int cell_constraint(BOARD *board,int *map, int row,int col,int *ind, int nXm, int nXm_square){
+int cell_constraint(BOARD *board,large_array_struct *map, int row,int col,int *ind){
 	int k=1;
-	int col_index = nXm*col;
-	int row_index = nXm_square*row;
 	int map_index;
 	int counter = 0;
 	if(get_element_from_board(board,col,row)==0){
-		for (;k<=nXm;k++){
-				map_index = map[row_index+col_index+k-1];
+		for (;k<=map->nXm;k++){
+				map_index = get_int_from_large_array(map,row,col,k-1);
 				if(map_index!=-1){
 					ind[counter] = map_index;
 					counter++;
@@ -230,24 +210,19 @@ int cell_constraint(BOARD *board,int *map, int row,int col,int *ind, int nXm, in
  * @param block_col - the index of the col of the block we want to build the constraint for.
  * @param digit - the digit we want to build the constraint for.
  * @param ind - the array that will represent the constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  *
  * @return number of non zero coefficients in this constraint.
  */
-int block_constraint(BOARD *board,int *map,int block_row, int block_col,int digit,int *ind,int nXm, int nXm_square){
+int block_constraint(BOARD *board,large_array_struct *map,int block_row, int block_col,int digit,int *ind){
 	int map_index,i,j,counter = 0;
-	int row_offset,col_offset;
 	int m = board->M;
 	int n = board->N;
 	int first_row_index = block_row*m;
 	int first_col_index = block_col*n;
 	if(is_valid_block(board->blocks[block_row][block_col],digit)){
 		for (i=0;i<m;i++){
-			row_offset = (first_row_index+i)*nXm_square;
 			for(j=0;j<n;j++){
-				col_offset = (first_col_index+j)*nXm;
-				map_index = map[row_offset + col_offset + digit-1];
+				map_index = get_int_from_large_array(map,first_row_index+i,first_col_index+j,digit-1);
 				if(map_index!=-1){
 					ind[counter] = map_index;
 					counter++;
@@ -269,26 +244,24 @@ int block_constraint(BOARD *board,int *map,int block_row, int block_col,int digi
  * 			  in the case of cell, represents the col of the cell we ant to build the constrain for.
  * @param ind - the array that will represent the constraint.
  * @param val - array of coefficients of the variables in each constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  * @param row_col_or_cell - 1 if row, 2 if col, 3 if cell.
  * @param error_string - a buffer to put the error message in.
  *
  */
-void constraint_helper(GRBmodel *model,GRBenv *env,BOARD *board,int *map,int k, int *ind,double *val,int nXm, int nXm_square, int row_col_or_cell,char *error_string){
+void constraint_helper(GRBmodel *model,GRBenv *env,BOARD *board,large_array_struct *map,int k, int *ind,double *val, int row_col_or_cell,char *error_string){
 	int i ,constraint_len ,error = 0;
 	char *type;
-	for(i=0;i<nXm;i++){
+	for(i=0;i<map->nXm;i++){
 		if(row_col_or_cell == 1){
-			constraint_len = row_constraint(board,map,i,k,ind,nXm,nXm_square);
+			constraint_len = row_constraint(board,map,i,k,ind);
 			type = "row";
 		}
 		if(row_col_or_cell == 2){
-			constraint_len = col_constraint(board,map,i,k,ind,nXm,nXm_square);
+			constraint_len = col_constraint(board,map,i,k,ind);
 			type = "col";
 		}
 		if(row_col_or_cell == 3){
-			constraint_len = cell_constraint(board,map,i,k,ind,nXm,nXm_square);
+			constraint_len = cell_constraint(board,map,i,k,ind);
 			type = "cell";
 		}
 
@@ -377,35 +350,31 @@ int choose_value_by_probability(double *scores,int *values,int num_of_values){
  *
  * @param board - the board we want to fill.
  * @param map - the map corresponds to the board.
- * @param sol - the scores we got from the LP/ILP algortihm.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
+ * @param sol - the scores we got from the LP/ILP algorithm.
  * @param threshold - the threshold to cut all the scores below it.
  *
  * @return TRUE if board is fully filled
  * 		   FALSE else.
  */
 
-int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square, double threshold){
+int put_sol_in_board(BOARD *board,large_array_struct *map, double *sol, double threshold){
 	int i,j,k;
-	int row_offset,col_offset,map_index;
+	int map_index;
 	int val = 0;
 	int num_of_legal_values = 0;
 	int res = TRUE, *legal_values_array = NULL;
-	double *legal_scores_array = (double *)calloc(nXm,sizeof(double));
+	double *legal_scores_array = (double *)calloc(map->nXm,sizeof(double));
 	if(legal_scores_array == NULL){
 		print_system_error(1,"error in allocating memory for legal_scores_array");
 	}
-	legal_values_array = (int *)calloc(nXm,sizeof(int));
+	legal_values_array = (int *)calloc(map->nXm,sizeof(int));
 	if(legal_values_array == NULL){
 		print_system_error(1,"error in allocating memory for legal_values_array");
 	}
-	for(i = 0; i<nXm; i++){
-		row_offset = i*nXm_square;
-		for(j = 0; j<nXm; j++){
-			col_offset = j*nXm;
-			for(k = 1; k<=nXm; k++){
-				map_index = map[row_offset+col_offset+k-1];
+	for(i = 0; i<map->nXm; i++){
+		for(j = 0; j<map->nXm; j++){
+			for(k = 1; k<=map->nXm; k++){
+				map_index = get_int_from_large_array(map,i,j,k-1);
 				if(map_index>-1){
 					if(sol[map_index] >= threshold){
 						if(is_valid_insertion_to_empty_cell(board,j,i,k)){
@@ -435,12 +404,11 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
 /*
  * this function defined in the .h file.
  */
-void get_hint(int *map,double *sol, int x,int y,int nXm,int nXm_square,double *scores){
-	int offset = x*nXm_square + y*nXm;
+void get_hint(large_array_struct *map,double *sol, int x,int y,double *scores){
 	int map_index;
 	int k;
-	for (k=0;k<nXm;k++){
-		map_index = map[offset+k];
+	for (k=0;k<map->nXm;k++){
+		map_index = get_int_from_large_array(map,y,x,k);
 		if(map_index == -1){
 			scores[k] = 0;
 		}else{
@@ -537,18 +505,16 @@ void initialize_model(GRBmodel *model,GRBenv *env,char *error_string,char *vtype
  * @param map - the map corresponds to this board.
  * @param ind - the array that will represent the constraint.
  * @param val - array of coefficients of the variables in each constraint.
- * @param nXm - N*M (dimensions of board).
- * @param nXm_square - (N*M)^2 (dimensions of board).
  */
-void put_constraints_in_model(GRBmodel *model,GRBenv *env,BOARD *board,char *error_string,int *map, int *ind,double *val,int nXm, int nXm_square){
+void put_constraints_in_model(GRBmodel *model,GRBenv *env,BOARD *board,char *error_string,large_array_struct *map, int *ind,double *val){
 	int i,j,k,constraint_len = 0,error = 0;
-	for (k=1;k<=nXm;k++){
-		constraint_helper(model,env,board,map,k,ind,val,nXm,nXm_square,1,error_string);
-		constraint_helper(model,env,board,map,k,ind,val,nXm,nXm_square,2,error_string);
-		constraint_helper(model,env,board,map,k-1,ind,val,nXm,nXm_square,3,error_string);
+	for (k=1;k<=map->nXm;k++){
+		constraint_helper(model,env,board,map,k,ind,val,1,error_string);
+		constraint_helper(model,env,board,map,k,ind,val,2,error_string);
+		constraint_helper(model,env,board,map,k-1,ind,val,3,error_string);
 		for(i=0;i<board->N;i++){
 			for(j=0;j<board->M;j++){
-				constraint_len = block_constraint(board,map,i,j,k,ind,nXm,nXm_square);
+				constraint_len = block_constraint(board,map,i,j,k,ind);
 				if(constraint_len>0){
 					error = GRBaddconstr(model, constraint_len , ind, val, GRB_EQUAL, 1, NULL);
 					if (error) {
@@ -629,15 +595,14 @@ void get_solution(GRBmodel *model,GRBenv *env, double *sol , char *error_string,
  * 		   FALSE else
  */
 
-int gurobi(BOARD *board,int num_of_vars,int *map, int is_binary, double *sol)
+int gurobi(BOARD *board,int num_of_vars,large_array_struct *map, int is_binary, double *sol)
 {
   GRBenv   *env   = NULL;
   GRBmodel *model = NULL;
   int       error = 0, optimstatus = 0, constraint_len = 0,res;
   char 		error_string[1000];
-  int 		i,j,k,nXm = board->M*board->N;
-  int 		nXm_square = nXm*nXm;
-  int       *ind = (int*)malloc(board->N*board->M*sizeof(int));
+  int 		i,j,k;
+  int       *ind = (int*)malloc(map->nXm*sizeof(int));
   double    *val = (double*)malloc(num_of_vars*sizeof(double));
   double    *obj = (double*)malloc(num_of_vars*sizeof(double));
   char      *vtype = (char*)malloc(num_of_vars*sizeof(char));
@@ -646,9 +611,9 @@ int gurobi(BOARD *board,int num_of_vars,int *map, int is_binary, double *sol)
 	  print_system_error(1,"error in allocating memory for gurobi arrays");
   }
   make_new_model(&model,&env,error_string);
-  initialize_arrays_for_gurobi(vtype,obj,val,num_of_vars,is_binary,nXm);
+  initialize_arrays_for_gurobi(vtype,obj,val,num_of_vars,is_binary,map->nXm);
   initialize_model(model,env,error_string,vtype,obj,val,num_of_vars);
-  put_constraints_in_model(model,env,board,error_string,map,ind,val,nXm,nXm_square);
+  put_constraints_in_model(model,env,board,error_string,map,ind,val);
   optimstatus = optimize_model(model,env,error_string);
   if(optimstatus != GRB_OPTIMAL){ /*no solution*/
 	  res = FALSE;
