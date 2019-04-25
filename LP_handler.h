@@ -47,6 +47,19 @@ int put_sol_in_board(BOARD *board,int *map, double *sol, int nXm,int nXm_square,
  * return TRUE if the board was fully solved
  * 		  FALSE else
  */
-int gurobi(BOARD *board,int num_of_var,int *map, int is_binary, double *solution);
+int gurobi(BOARD *board,int num_of_vars,int *map, int is_binary, double *solution);
+/*
+ * This function is taking the map and the solution of the LP algorithm
+ * in order to find the scores of legal values in a certain cell and build this array of score.
+ *
+ * @param map - the map corresponds to the board we want to get the hint for.
+ * @param sol - the scores we got from the LP/ILP algorithm.
+ * @param x - the col of the cell we want to get the hint for.
+ * @param y - the row of the cell we want to get the hint for.
+ * @param nXm - N*M (dimensions of board).
+ * @param nXm_square - (N*M)^2 (dimensions of board).
+ * @param scores - an array of size N*M that will hold for each value its score.
+ *
+ */
 void get_hint(int *map,double *sol, int x,int y,int nXm,int nXm_square,double *scores);
 #endif /* LP_HANDLER_H_ */
