@@ -40,12 +40,10 @@ void hint(BOARD *solution_board, int x, int y) {
 /*
  * this function executes the 'guess_hint' command.
  *
- * @param map			- .
- * @param sol			- .
+ * @param map			- the map made for this game board
+ * @param sol			- the scores that the gurobi returned (LP elagorithm)
  * @param x 			- the required cells's column.
  * @param y 			- the required cells's row.
- * @param nXm			- a number that represents the number of cells in each row, column and block.
- * @param nXm_square	- a number that represents the total number of cells in the puzzle.
  *
  */
 void guess_hint(large_array_struct *map, double *sol, int x, int y) {
@@ -441,7 +439,6 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
  *  @param x					- the number of empty cells needed to be filled before solving the puzzle.
  *  @param numOfEmptyCells		- a number that represents the current number of empty cells in the puzzle.
  *  @param nXm					- a number that represents the number of cells in each row, column and block.
- *  @param nXm_square			- a number that represents the total number of cells in the puzzle.
  *
  *  first, the function copies all_empty_cells to copy_all.
  *  Then, it fills selected_empty_cells with x randomly chosen empty cells (using the 'choose_random_empty_cells' method).
@@ -468,10 +465,6 @@ int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], 
 			return FALSE;
 		}
 	}
-	/*map = (int*)calloc(nXm*nXm_square, sizeof(int));
-	if(map == NULL){
-		print_system_error(1,"error in allocating memory for map");
-	}*/
 	num_of_vars = map_maker(board, map);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
 	if(sol == NULL){
@@ -518,7 +511,6 @@ void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) 
  *  @param y				- the number of non-empty cells the puzzle needs to contain eventually.
  *  @param numOfEmptyCells	- a number that represents the current number of empty cells in the puzzle.
  *  @param nXm				- a number that represents the number of cells in each row, column and block.
- *  @param nXm_square		- a number that represents the total number of cells in the puzzle.
  *
  *  first, the function copies the current puzzle to solution_board (the solution is no longer needed) and calls the 'fill_array_with_empty_cells' method.
  *  Then, it tries to solve the puzzle after successfully fill x random empty cells with legal values (using the 'fill_x_cells_and_solve' method).
@@ -626,10 +618,6 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 	double *sol = NULL;
 	solution_board = copy_board(board);
 	x = args[0], y = args[1], isExecuted = TRUE;
-	/*map= (int*)calloc(nXm*nXm_square, sizeof(int));
-	if(map == NULL){
-		print_system_error(1,"error in allocating memory for map");
-	}*/
 	num_of_vars = map_maker(board, map);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
 	if(sol == NULL){
