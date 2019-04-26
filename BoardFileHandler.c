@@ -66,7 +66,9 @@ int read_next_element(FILE *file,int *z,int *is_fixed,int N,int M){
 	}
 	return TRUE;
 }
-
+/*
+ * this function defined in the .h file.
+ */
 int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	FILE *file = NULL;
 	int N,M,x,y,z,is_fixed;
@@ -85,8 +87,6 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	for(y=0;y<M*N;y++){
 		for(x=0;x<N*M;x++){
 			if (!read_next_element(file,&z,&is_fixed,N,M)) {
-				delete_board(*board);
-				delete_board(*fix_board);
 				fclose(file);
 				return FALSE;
 			}
@@ -100,7 +100,9 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 	fclose(file);
 	return TRUE;
 }
-
+/*
+ * this function defined in the .h file.
+ */
 int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
 	FILE *file;
 	int i = 0,j = 0, val;

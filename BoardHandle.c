@@ -87,32 +87,40 @@ void init_boards(BOARD** board1, BOARD** board2, int N, int M) {
  * @param block - the block needed to be deleted.
  */
 void delete_block(BLOCK* block) {
+	int i = 0;
 	if(block == NULL){
 		return;
 	}
-	int i = 0;
-	for(;i<block->M;i++) {
-		free(block->values[i]);
+	if(block->values!=NULL){
+		for(;i<block->M;i++) {
+			if(block->values[i]!=NULL){
+				free(block->values[i]);
+			}
+		}
+		free(block->values);
 	}
-	free(block->values);
 	free(block);
 }
 /*
  * this function defined in the .h file.
  */
 void delete_board(BOARD* board) {
+	int i = 0;
+	int j = 0;
 	if(board == NULL){
 		return;
 	}
-	int i = 0;
-	int j = 0;
-	for(;i<board->N;i++) {
-		for(j=0;j<board->M;j++){
-			delete_block(board->blocks[i][j]);
+	if(board->blocks!=NULL){
+		for(;i<board->N;i++) {
+			if(board->blocks[i]!=NULL){
+				for(j=0;j<board->M;j++){
+					delete_block(board->blocks[i][j]);
+				}
+				free(board->blocks[i]);
+			}
 		}
-		free(board->blocks[i]);
+		free(board->blocks);
 	}
-	free(board->blocks);
 	free(board);
 }
 

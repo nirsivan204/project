@@ -40,34 +40,31 @@ void hint(BOARD *solution_board, int x, int y) {
 /*
  * this function executes the 'guess_hint' command.
  *
- * @param map			- .
- * @param sol			- .
+ * @param map			- the map made for this game board
+ * @param sol			- the scores that the gurobi returned (LP elagorithm)
  * @param x 			- the required cells's column.
  * @param y 			- the required cells's row.
- * @param nXm			- a number that represents the number of cells in each row, column and block.
- * @param nXm_square	- a number that represents the total number of cells in the puzzle.
  *
  */
-void guess_hint(int *map, double *sol, int x, int y, int nXm, int nXm_square) {
+void guess_hint(large_array_struct *map, double *sol, int x, int y) {
 	int i;
-	double *scores = (double*)calloc(nXm, sizeof(double));
+	double *scores = (double*)calloc(map->nXm, sizeof(double));
 	if(scores == NULL){
 		print_system_error(1,"error in allocating an array for the scores");
 	}
-	get_hint(map,sol,x-1,y-1,nXm,nXm_square,scores);
+	get_hint(map,sol,x-1,y-1,scores);
 	i = 0;
-	while (i < nXm && scores[i] == 0) {
+	while (i < map->nXm && scores[i] == 0) {
 		i++;
 	}
-	if (i < nXm) {
-		printf("Legal values of cell <%d,%d>:\n", x, y);
-		for (i = 1; i<=nXm; i++) {
-			if (scores[i-1] > 0) {
-				printf("%d with score of: %f\n",i, scores[i-1]);
-			}
+	if (i < map->nXm) {
+	printf("Legal values of cell <%d,%d>:\n", x, y);
+	for (i = 1; i<=map->nXm; i++) {
+		if (scores[i-1] > 0) {
+			printf("%d with score of: %f\n",i, scores[i-1]);
 		}
 	}
-	else {
+	}else {
 		printf("Statistically, cell <%d,%d> has no legal values with score greater than 0.\n", x, y);
 	}
 	free(scores);
@@ -442,7 +439,6 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
  *  @param x					- the number of empty cells needed to be filled before solving the puzzle.
  *  @param numOfEmptyCells		- a number that represents the current number of empty cells in the puzzle.
  *  @param nXm					- a number that represents the number of cells in each row, column and block.
- *  @param nXm_square			- a number that represents the total number of cells in the puzzle.
  *
  *  first, the function copies all_empty_cells to copy_all.
  *  Then, it fills selected_empty_cells with x randomly chosen empty cells (using the 'choose_random_empty_cells' method).
@@ -454,34 +450,31 @@ int fill_cell_with_random_legal_value(BOARD* board, int cell_num, int digits[], 
  *  @return 1 if all cells has been successfully filled and the puzzle was solved, 0 otherwise (if at any point, all changes made are canceled with the 'emtpy_cells' method).
  */
 int fill_x_cells_and_solve(BOARD* board, int all_empty_cells[], int copy_all[], int selected_empty_cells[], \
-		int digits[], int x, int numOfEmptyCells, int nXm, int nXm_square) {
+		int digits[], int x, int numOfEmptyCells, int nXm) {
 	double *sol = NULL;
-	int index, *map = NULL ,num_of_vars, gurobi_result;
+	int index ,num_of_vars, gurobi_result;
+	large_array_struct *map = init_large_array_struct(board->N*board->M);
 	gurobi_result = TRUE;
 	for (index=0; index<numOfEmptyCells; index++) {
 		copy_all[index] = all_empty_cells[index];
 	}
 	choose_random_empty_cells(copy_all, selected_empty_cells, numOfEmptyCells, x);
 	for (index=0; index<x; index++) {
-		if (!fill_cell_with_random_legal_value(board, selected_empty_cells[index], digits, nXm)) {
-			emtpy_cells(board, selected_empty_cells, index, nXm);
+		if (!fill_cell_with_random_legal_value(board, selected_empty_cells[index], digits, map->nXm)) {
+			emtpy_cells(board, selected_empty_cells, index, map->nXm);
 			return FALSE;
 		}
 	}
-	map = (int*)calloc(nXm*nXm_square, sizeof(int));
-	if(map == NULL){
-		print_system_error(1,"error in allocating memory for map");
-	}
-	num_of_vars = map_maker(board, map, nXm, nXm_square);
+	num_of_vars = map_maker(board, map);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
 	if(sol == NULL){
 		print_system_error(1,"error in allocating memory for scores");
 	}
-	if (gurobi(board,num_of_vars,map,TRUE,sol) != TRUE || !put_sol_in_board(board,map,sol,nXm,nXm_square,0)) {
+	if (gurobi(board,num_of_vars,map,TRUE,sol) != TRUE || !put_sol_in_board(board,map,sol,0)) {
 		emtpy_cells(board, selected_empty_cells, x, nXm);
 		gurobi_result = FALSE;
 	}
-	free(map);
+	delete_large_array(map);
 	free(sol);
 	return gurobi_result;
 }
@@ -518,7 +511,6 @@ void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) 
  *  @param y				- the number of non-empty cells the puzzle needs to contain eventually.
  *  @param numOfEmptyCells	- a number that represents the current number of empty cells in the puzzle.
  *  @param nXm				- a number that represents the number of cells in each row, column and block.
- *  @param nXm_square		- a number that represents the total number of cells in the puzzle.
  *
  *  first, the function copies the current puzzle to solution_board (the solution is no longer needed) and calls the 'fill_array_with_empty_cells' method.
  *  Then, it tries to solve the puzzle after successfully fill x random empty cells with legal values (using the 'fill_x_cells_and_solve' method).
@@ -527,14 +519,14 @@ void empty_all_but_y_cells(BOARD* board, int y, int nXm, int curr_num_of_cells) 
  *
  *  @return 1 if a puzzle was generated successfully, 0 otherwise.
  */
-int generate(BOARD *board, BOARD *solution_board, int x, int y, int numOfEmptyCells, int nXm, int nXm_square) {
+int generate(BOARD *board, BOARD *solution_board, int x, int y, int numOfEmptyCells, int nXm) {
 	int times, all_empty_cells[numOfEmptyCells], copy_all[numOfEmptyCells], selected_empty_cells[x], digits[nXm];
 	update_changes_in_board(solution_board, board, FALSE);
 	fill_array_with_empty_cells(solution_board, all_empty_cells, nXm);
 	srand(time(0));
 	for (times=0; times<1000; times++){
-		if (fill_x_cells_and_solve(solution_board,all_empty_cells,copy_all,selected_empty_cells,digits,x,numOfEmptyCells,nXm,nXm_square)) {
-			empty_all_but_y_cells(solution_board, y, nXm, nXm_square);
+		if (fill_x_cells_and_solve(solution_board,all_empty_cells,copy_all,selected_empty_cells,digits,x,numOfEmptyCells,nXm)) {
+			empty_all_but_y_cells(solution_board, y, nXm,nXm*nXm);
 			return TRUE;
 		}
 	}
@@ -621,21 +613,18 @@ int start_puzzle(char *path,BOARD **board,BOARD **marking_board,int *mode,int co
  */
 int execute_solution_based_command(int command, BOARD *board, int *args, float threshold, int numOfEmptyCells, int nXm, int *isUpdatedBoard) {
 	BOARD *solution_board = NULL;
-	int isSolvable, isExecuted, x, y, nXm_square, *map = NULL, num_of_vars, gurobi_result;
+	int isSolvable, isExecuted, x, y, num_of_vars, gurobi_result;
+	large_array_struct *map = init_large_array_struct(board->N*board->M);
 	double *sol = NULL;
 	solution_board = copy_board(board);
-	x = args[0], y = args[1], isExecuted = TRUE, nXm_square =nXm*nXm;
-	map= (int*)calloc(nXm*nXm_square, sizeof(int));
-	if(map == NULL){
-		print_system_error(1,"error in allocating memory for map");
-	}
-	num_of_vars = map_maker(board, map, nXm, nXm_square);
+	x = args[0], y = args[1], isExecuted = TRUE;
+	num_of_vars = map_maker(board, map);
 	sol = (double*)calloc(num_of_vars, sizeof(double));
 	if(sol == NULL){
 		print_system_error(1,"error in allocating memory for scores");
 	}
 	gurobi_result = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
-	isSolvable = gurobi_result == TRUE && put_sol_in_board(solution_board,map,sol,nXm,nXm_square,threshold) == TRUE;
+	isSolvable = gurobi_result == TRUE && put_sol_in_board(solution_board,map,sol,threshold) == TRUE;
 	switch (command) {
 	case Guess: update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard); break;
 	case Validate: validate(isSolvable); break;
@@ -647,10 +636,10 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 		/* else - solution_board contains a correct solution for board: */
 		switch (command) {
 		case Hint: hint(solution_board, x, y); break;
-		case Guess_hint: guess_hint(map, sol, x, y, nXm, nXm_square); break;
+		case Guess_hint: guess_hint(map, sol, x, y); break;
 		case Save: break;
 		default: /* command is 'generate' */
-			isExecuted = generate(board, solution_board, x, y, numOfEmptyCells, nXm, nXm_square);
+			isExecuted = generate(board, solution_board, x, y, numOfEmptyCells, nXm);
 			if (isExecuted == TRUE) {
 				update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard);
 			}
@@ -659,7 +648,7 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 	}
 	delete_board(solution_board);
 	free(sol);
-	free(map);
+	delete_large_array(map);
 	return isExecuted;
 }
 
