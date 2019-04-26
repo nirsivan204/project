@@ -7,13 +7,13 @@
 ////#include "MainAux.h"
 #include "Game.h"
 #include "Parser.h"
-#include "command_stack.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "SPBufferset.h"
 #include "BoardFileHandler.h"
 #include "backtracking_stack.h"
+#include "CommandStack.h"
 #include "LP_handler.h"
 int current_mode = INIT;
 

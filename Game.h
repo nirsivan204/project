@@ -9,7 +9,7 @@
 #include "backtracking_stack.h"
 #include "LP_handler.h"
 #include "BoardFileHandler.h"
-#include "command_stack.h"
+#include "CommandStack.h"
 
 /*
  *  this function prints an announcement of the beginning of the game.
