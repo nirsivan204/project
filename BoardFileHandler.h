@@ -1,10 +1,9 @@
-/*
- * BoardFileHandler.h
+/**
+ * BoardFileHandler module - This module handles all the file system function that are needed to save and load boards. This module supports the following functions:
  *
- *  Created on: 13 αταψ 2019
- *      Author: nir
+ * load_board    		- load a board from a file
+ * save_board     		- save a board to a file
  */
-
 #include "BoardHandle.h"
 #include "Errors.h"
 

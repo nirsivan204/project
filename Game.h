@@ -6,8 +6,8 @@
  */
 #ifndef GAME_H_
 #define GAME_H_
-#include "backtracking_stack.h"
-#include "LP_handler.h"
+#include "BacktrackingStack.h"
+#include "LPHandler.h"
 #include "BoardFileHandler.h"
 #include "CommandStack.h"
 

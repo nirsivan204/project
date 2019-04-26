@@ -1,9 +1,3 @@
-/*
- * BoardFileHandler.c
- *
- *  Created on: 13 αταψ 2019
- *      Author: nir
- */
 #include "BoardFileHandler.h"
 
 /*

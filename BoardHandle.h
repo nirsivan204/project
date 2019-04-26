@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include "strings.h"
 #include "Errors.h"
-#include "MainAux.h"
+#include "AuxModule.h"
 
 #ifndef BOARDHANDLER_H_
 #define BOARDHANDLER_H_
