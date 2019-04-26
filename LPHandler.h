@@ -1,8 +1,10 @@
-/*
- * LP_handler.h
+/**
+ * LPHandler module - This module contains all the is handling the LP/ILP algorithms and needed functions for the gurobi library use. This module supports the following functions:
  *
- *  Created on: 12 במרס 2019
- *      Author: nir
+ * map_maker    		- makes the map that is needed for mapping the variables to the gurobi.
+ * put_sol_in_board     - puts in a board a solution that the gurobi gave.
+ * gurobi   			- function that uses the export library of the gurobi in order to get a solution with the LP/ILP algorithm.
+ * get_hint             - this function is getting a hint on a specific cell using LP algorithm
  */
 
 #ifndef LP_HANDLER_H_

@@ -6,7 +6,7 @@
  * print_invalid_file_error 	- prints an error that was caused by problems in file handling.
  * print_invalid_move_error 	- prints an error that was caused by invalid moves.
  */
-#include "MainAux.h"
+#include "AuxModule.h"
 #include <errno.h>
 
 #ifndef ERRORS_H_

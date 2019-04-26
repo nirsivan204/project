@@ -1,9 +1,3 @@
-/*
- * backtracking_stack.c
- *
- *  Created on: 14 αταψ 2019
- *      Author: nir
- */
 #include "backtracking_stack.h"
 
 /*

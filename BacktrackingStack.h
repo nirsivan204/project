@@ -1,8 +1,7 @@
-/*
- * backtracking_stack.h
+/**
+ * BacktrackingStack module - This module contains function of the exhaust backtracking algorithm and the stack struct needed for it. This module supports the following functions:
  *
- *  Created on: 14 αταψ 2019
- *      Author: nir
+ * exhaustive_backtracking  - function that is using the exhaust backtracking algorithm in order to find num of solutions to a board.
  */
 #include "BoardHandle.h"
 
