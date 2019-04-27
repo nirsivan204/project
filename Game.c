@@ -629,10 +629,13 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 	case Guess: update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard); break;
 	case Validate: validate(isSolvable); break;
 	default:
-		if (!validate_move(isSolvable,2,0,0,command)) {
-			isExecuted = FALSE;
-			break;
+		if((command!=Guess_hint || gurobi_result == FALSE)){
+			if (!validate_move(isSolvable,2,0,0,command)) {
+				isExecuted = FALSE;
+				break;
+			}
 		}
+
 		/* else - solution_board contains a correct solution for board: */
 		switch (command) {
 		case Hint: hint(solution_board, x, y); break;
