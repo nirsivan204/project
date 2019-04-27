@@ -1,5 +1,5 @@
 CC = gcc
-OBJS =  Game.o BoardFileHandler.o BoardHandle.o Parser.o Errors.o AuxModule.o LPHandler.o command_stack.o BacktrackingStack.o LargeArray.o
+OBJS =  Game.o BoardFileHandler.o BoardHandle.o Parser.o Errors.o AuxModule.o LPHandler.o CommandStack.o BacktrackingStack.o LargeArray.o
 EXEC = sudoku-console
 COMP_FLAG = -ansi -Wall -Wextra -Werror -pedantic-errors
 GUROBI_COMP = -I/usr/local/lib/gurobi563/include
@@ -14,7 +14,7 @@ main.o: main.c Game.h Parser.h SPBufferset.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 tester.o: tester.c Game.h Parser.h SPBufferset.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
-Game.o: Game.c Game.h Solver.h BoardFileHandler.h command_stack.h LPHandler.h BacktrackingStack.h
+Game.o: Game.c Game.h Solver.h BoardFileHandler.h CommandStack.h LPHandler.h BacktrackingStack.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 BoardFileHandler.o: BoardFileHandler.c BoardFileHandler.h Errors.h BoardHandle.h 
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
@@ -28,7 +28,7 @@ AuxModule.o: AuxModule.c AuxModule.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 LPHandler.o: LPHandler.c LPHandler.h LargeArray.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
-command_stack.o: command_stack.c command_stack.h
+CommandStack.o: CommandStack.c CommandStack.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c
 BacktrackingStack.o: BacktrackingStack.c BacktrackingStack.h
 	$(CC) $(COMP_FLAGS) $(GUROBI_COMP) -c $*.c

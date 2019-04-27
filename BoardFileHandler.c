@@ -63,7 +63,7 @@ int read_next_element(FILE *file,int *z,int *is_fixed,int N,int M){
 /*
  * this function defined in the .h file.
  */
-int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
+int load_board(char *path,BOARD **board, BOARD **marking_board, int command_name){
 	FILE *file = NULL;
 	int N,M,x,y,z,is_fixed;
 	file = fopen(path, "r");
@@ -76,7 +76,7 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 		fclose(file);
 		return FALSE;
 	}
-	init_boards(board, fix_board, N, M);
+	init_boards(board, marking_board, N, M);
 	(fgetc(file));
 	for(y=0;y<M*N;y++){
 		for(x=0;x<N*M;x++){
@@ -86,7 +86,7 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 			}
 			set_element_to_board(*board,x,y,z);
 			if (command_name == Solve) {
-				set_element_to_board(*fix_board,x,y,is_fixed);
+				set_element_to_board(*marking_board,x,y,is_fixed);
 			}
 		}
 		fscanf(file,"\n");
@@ -97,7 +97,7 @@ int load_board(char *path,BOARD **board, BOARD **fix_board, int command_name){
 /*
  * this function defined in the .h file.
  */
-int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
+int save_board(char *path,BOARD *board,BOARD *marking_board,int mode){
 	FILE *file;
 	int i = 0,j = 0, val;
 	file = fopen(path, "w");
@@ -110,7 +110,7 @@ int save_board(char *path,BOARD *board,BOARD *fix_board,int mode){
 		for (j=0;j<board->M*board->N;j++){
 			val = get_element_from_board(board,j,i);
 			fprintf(file,"%d", val);
-			if(val > 0 && (mode == EDIT || get_element_from_board(fix_board,j,i)==FIXED)){
+			if(val > 0 && (mode == EDIT || get_element_from_board(marking_board,j,i)==FIXED)){
 				fprintf(file,". ");
 			}else{
 				if(j!=board->M*board->N-1){
