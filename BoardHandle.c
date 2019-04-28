@@ -63,7 +63,7 @@ BOARD* init_board(int N, int M) {
 			}
 		}
 	}
-	for(i=0; i<(3*N+2)*M+1;i++){ /*4*N*M+M+1*/
+	for(i=0; i<(4*N+1)*M+1;i++){ /*4*N*M+M+1*/
 		result->line_seperator[i] = '-';
 	}
 	result->line_seperator[i] = '\n';
@@ -293,10 +293,10 @@ void print_block_row(BLOCK *block,BLOCK *marking_block,int row,int mark){ /*prin
 	for (i=0;i<block->N;i++){/*for every col*/
 		printf(" ");
 		if(block->values[row][i]==0){ /*if empty, print " " else print the number*/
-			printf(" ");
+			printf("  ");
 		}
 		else{
-			printf("%d",block->values[row][i]);
+			printf("%2d",block->values[row][i]);
 		}
 		if(marking_block->values[row][i]==FIXED){ /*if fixed, print "."*/
 			printf(".");
@@ -331,7 +331,7 @@ void print_board(BOARD *board, BOARD *marking_board,int mark_errors,int mode, in
 			printf("|");
 			for (block_col = 0;block_col<board->M;block_col++){/*for each block in the row*/
 				print_block_row(board->blocks[block_row][block_col],marking_board->blocks[block_row][block_col],row , mark); /*print the row*/
-				printf(" |");
+				printf("|");
 			}
 			printf("\n");
 		}

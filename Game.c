@@ -624,7 +624,7 @@ int execute_solution_based_command(int command, BOARD *board, int *args, float t
 		print_system_error(1,"error in allocating memory for scores");
 	}
 	gurobi_result = gurobi(board, num_of_vars, map, command != Guess_hint && command != Guess, sol);
-	isSolvable = gurobi_result == TRUE && put_sol_in_board(solution_board,map,sol,threshold) == TRUE;
+	isSolvable = gurobi_result == TRUE && (command==Guess_hint || put_sol_in_board(solution_board,map,sol,threshold) == TRUE);
 	switch (command) {
 	case Guess: update_count(update_changes_in_board(board, solution_board, FALSE), isUpdatedBoard); break;
 	case Validate: validate(isSolvable); break;

@@ -1,4 +1,4 @@
-#include "backtracking_stack.h"
+#include "BacktrackingStack.h"
 
 /*
  * this function initializes the stack for the algorithm. every element in the stack is corresopnding to a cell in the board.

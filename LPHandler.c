@@ -1,4 +1,4 @@
-#include "LP_handler.h"
+#include "LPHandler.h"
 /*
  * This function fills the map with -1 for variables
  * that will not be mapped because they are not legal in the row i.
